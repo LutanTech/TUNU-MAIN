@@ -14,7 +14,7 @@ app.config['SECRET_KEY'] = 'THIS_IS_SO_SECRET_FOR_2026_TUNU'
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
     'DATABASE_URL',
-    'postgresql://tunupublsh_tunupublsh:MY_PASSWORD@localhost/tunupublsh_main_db'
+    'postgresql://tunupublsh_admin:MY_PASSWORD@127.0.0.1/tunupublsh_main_db'
 )
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
