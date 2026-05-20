@@ -6,3 +6,4 @@ Flask_WTF
 Werkzeug
 SQLAlchemy
 alembic
+psycopg2-binary
