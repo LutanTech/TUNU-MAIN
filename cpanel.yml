@@ -1,0 +1,5 @@
+deployment:
+  tasks:
+    - export APPDIR=/home3/tunupublsh/api
+    - cd $APPDIR
+    - /bin/git pull origin main
