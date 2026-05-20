@@ -1,0 +1,392 @@
+{% extends 'base.html' %}
+
+{% block title %}TUNU Publishers | Elimu ni Tunu{% endblock %}
+
+{% block content %}
+
+    <div class="overlay" id="overlay" onclick="closeCart()"></div>
+
+    <!-- Cart Drawer -->
+    <div class="cart-drawer" id="cart-drawer">
+        <div class="cart-header">
+            <h3><i class="fas fa-shopping-basket"></i> Your Basket</h3>
+            <button onclick="closeCart()" style="background:none; border:none; color:white; cursor:pointer; font-size:24px;"><i class="fas fa-times-circle"></i></button>
+        </div>
+        <div class="cart-items" id="cart-items-list">
+            <div style="text-align:center; color:#999; margin-top:50px;">
+                <i class="fas fa-shopping-cart fa-4x" style="margin-bottom:20px; opacity:0.3;"></i>
+                <p>Your cart is empty</p>
+            </div>
+        </div>
+        <div class="cart-footer" style="padding:25px; border-top:1px solid #eee;">
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:20px; margin-bottom:20px;">
+                <span>Total:</span>
+                <span id="cart-total" style="color:var(--magenta);">KES 0</span>
+            </div>
+            <button class="checkout-btn" onclick="combineCart()">
+                <i class="fas fa-lock"></i> SECURE CHECKOUT
+            </button>
+        </div>
+    </div>
+
+    <!-- Hero Carousel -->
+    <section class="hero-carousel">
+        <div class="carousel-slide active">
+            <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600" class="carousel-img" alt="Education">
+            <div class="container">
+                <div class="carousel-content">
+                    <h2>Empowering the Next Generation</h2>
+                    <p>High-quality, CBC-approved publishing and educational resources that inspire African voices.</p>
+                    <button class="btn btn-primary" onclick="openCart()">
+                        <i class="fas fa-book-open"></i> EXPLORE SERIES
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1588072432836-e10032774350?w=1600" class="carousel-img" alt="Kids Learning">
+            <div class="container">
+                <div class="carousel-content">
+                    <h2>Creative Arts & Readers</h2>
+                    <p>Nurturing creativity and artistic expression with culturally relevant materials for our young learners.</p>
+                    <button class="btn btn-primary" onclick="openCart()">
+                        <i class="fas fa-paint-brush"></i> VIEW READERS
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-slide">
+            <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600" class="carousel-img" alt="Library">
+            <div class="container">
+                <div class="carousel-content">
+                    <h2>Revision Made Easy</h2>
+                    <p>Unlock your potential with our comprehensive revision guides tailored for CBC success.</p>
+                    <button class="btn btn-primary" onclick="openCart()">
+                        <i class="fas fa-graduation-cap"></i> SHOP REVISION
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-nav" id="carousel-dots">
+            <div class="dot active" onclick="setSlide(0)"></div>
+            <div class="dot" onclick="setSlide(1)"></div>
+            <div class="dot" onclick="setSlide(2)"></div>
+        </div>
+    </section>
+
+    <!-- Category Section -->
+    <section class="category-section">
+        <div class="container">
+            <div class="category-grid">
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=400" alt="Primary">
+                    <h3>Primary School</h3>
+                    <button class="btn btn-secondary btn-small" onclick="openCart()">
+                        <i class="fas fa-eye"></i> SHOP PRIMARY
+                    </button>
+                </div>
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1588072432836-e10032774350?w=400" alt="Workbooks">
+                    <h3>Revision Books</h3>
+                    <button class="btn btn-secondary btn-small" onclick="openCart()">
+                        <i class="fas fa-eye"></i> VIEW REVISION
+                    </button>
+                </div>
+                <div class="category-card">
+                    <img src="https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=400" alt="Readers">
+                    <h3>Creative Readers</h3>
+                    <button class="btn btn-secondary btn-small" onclick="openCart()">
+                        <i class="fas fa-eye"></i> EXPLORE READERS
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Tabs -->
+    <section class="tabs-section" style="padding-bottom: 80px;">
+        <div class="container">
+            <div class="tabs-header">
+                <button onclick="switchTab('rating')" id="tab-rating" class="tab-btn tab-active">
+                    <i class="fas fa-star"></i> TOP RATED
+                </button>
+                <button onclick="switchTab('selling')" id="tab-selling" class="tab-btn">
+                    <i class="fas fa-fire"></i> BEST SELLING
+                </button>
+            </div>
+            <div id="book-container" class="book-grid"></div>
+        </div>
+    </section>
+
+
+    <a href="https://wa.me/254722682129" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-slide');
+        const dots = document.querySelectorAll('.dot');
+
+        function setSlide(index) {
+            slides[currentSlide].classList.remove('active');
+            dots[currentSlide].classList.remove('active');
+            currentSlide = index;
+            slides[currentSlide].classList.add('active');
+            dots[currentSlide].classList.add('active');
+        }
+
+        setInterval(() => {
+            let next = (currentSlide + 1) % slides.length;
+            setSlide(next);
+        }, 6000);
+
+
+        function get_discount(book) {
+            const old = book.oldPrice;
+            const New = book.newPrice;
+            const disc = (100 * (old - New)) / old;
+            return parseInt(disc);
+        }
+
+
+
+
+            window.booksData = {{ books_data | tojson | safe }};
+        
+            function get_discount(book){
+        
+                if(!book.oldPrice || book.oldPrice <= 0)
+                    return 0
+        
+                return Math.round(
+                    ((book.oldPrice - book.newPrice)
+                    / book.oldPrice) * 100
+                )
+            }
+        
+            function renderBooks(category){
+        
+                const container =
+                    document.getElementById('book-container')
+        
+                const books = booksData[category] || []
+        
+                container.innerHTML = ''
+        
+                books.forEach(book => {
+        
+                    container.innerHTML += `
+                    
+                        <div class="book-card">
+        
+                            ${book.oldPrice > 0
+                                ? `
+                                    <span class="discount-badge">
+                                        SAVE ${get_discount(book)}%
+                                    </span>
+                                `
+                                : ''
+                            }
+        
+                            <div class="book-img-wrapper">
+                                <img
+                                    src="${book.image}"
+                                    alt="${book.title}"
+                                >
+                            </div>
+        
+                            <h4 style="font-size:14px;">
+                                ${book.title}
+                            </h4>
+        
+                            <p style="
+                                color:#888;
+                                font-size:12px;
+                            ">
+                                ${book.grade
+                                    ? 'Grade: ' + book.grade
+                                    : book.audience
+                                }
+                            </p>
+        
+                            <div style="font-weight:bold;">
+        
+                                ${book.oldPrice > 0
+                                    ? `
+                                        <span style="
+                                            text-decoration:line-through;
+                                            color:orangered;
+                                            font-size:12px;
+                                            margin-right:8px;
+                                        ">
+                                            KES ${book.oldPrice}
+                                        </span>
+                                    `
+                                    : ''
+                                }
+        
+                                <span style="color:var(--magenta);">
+                                    KES ${book.newPrice}
+                                </span>
+        
+                            </div>
+        
+                            <button
+                                onclick="addToCart(
+                                    '${book.id}',
+                                    '${category}'
+                                )"
+                                class="btn btn-secondary btn-small"
+                            >
+                                <i class="fas fa-cart-plus"></i>
+                                ADD TO CART
+                            </button>
+        
+                        </div>
+                    `
+                })
+            }
+        
+            setTimeout(() =>{
+            renderBooks('rating')
+        }, 1000)
+        
+
+        function switchTab(category) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('tab-active'));
+            document.getElementById(`tab-${category}`).classList.add('tab-active');
+            renderBooks(category);
+        }
+
+
+        function saveCart() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+        
+        function addToCart(id, category, quantity = 1) {
+            console.log(id, category, quantity)
+
+            const book = booksData[category].find(b => b.id === id);
+        
+            console.log(id, category, quantity, book)
+
+            if (!book) return;
+        
+            const existingItem = cart.find(
+                item => item.id === id && item.category === category
+            );
+        
+            if (existingItem) {
+                existingItem.quantity += quantity;
+            } else {
+                cart.push({
+                    ...book,
+                    category,
+                    quantity
+                });
+            }
+        
+            saveCart();
+            updateCartUI();
+            openCart();
+        }
+        
+        function removeFromCart(id, category) {
+            cart = cart.filter(
+                item => !(item.id === id && item.category === category)
+            );
+        
+            saveCart();
+            updateCartUI();
+        }
+        
+        function clearCart() {
+            cart = [];
+            saveCart();
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const list = document.getElementById('cart-items-list');
+            const count = document.getElementById('cart-count');
+            const total = document.getElementById('cart-total');
+            count.innerText = cart.length;
+            
+            if (cart.length === 0) {
+                list.innerHTML = `<div style="text-align:center; color:#999; margin-top:50px;"><i class="fas fa-shopping-cart fa-4x" style="margin-bottom:20px; opacity:0.3;"></i><p>Your cart is empty</p></div>`;
+                total.innerText = 'KES 0';
+                return;
+            }
+
+            let sum = 0;
+            list.innerHTML = '';
+            cart.forEach((item, index) => {
+                sum += (item.newPrice * item.quantity);
+                list.innerHTML += `
+                    <div class="cart-item">
+                        <img src="${item.url}" alt="">
+                        <div style="flex:1">
+                            <h5 style="font-size:13px; margin-bottom:4px;">${item.title}</h5>
+                            <p style="color:var(--magenta); font-weight:800;">KES ${item.newPrice}</p>
+                            <p style="color:grey;font-size:small;"><b>Quantity: </b> X${item.quantity}</p>
+                        </div>
+                        <button onclick="removeFromCart(${index})" style="background:none; border:none; color:#ff4d4d; cursor:pointer;"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                `;
+            });
+            total.innerText = `KES ${(sum).toLocaleString()}`;
+            document.querySelector('.count-span').innerText = cart.length;
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartUI();
+        }
+
+        function openCart() {
+            document.getElementById('cart-drawer').classList.add('open');
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function closeCart() {
+            document.getElementById('cart-drawer').classList.remove('open');
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        window.onload = () => renderBooks('rating');
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateCartUI();
+        });
+        
+        function combineCart(){
+
+            const cart_items = JSON.parse(
+                localStorage.getItem('cart') || '[]'
+            )
+        
+            let message = '📚 *TUNU BOOK ORDER* %0A%0A'
+        
+            let total = 0
+        
+            cart_items.forEach((i, index)=>{
+        
+                const qty = i.quantity || 1
+                const subtotal = qty * i.newPrice
+        
+                total += subtotal
+        
+                message += `*${index + 1}.* ${i.title}%0A`
+                message += `Qty: ${qty}%0A`
+                message += `Price: KES ${i.newPrice}%0A`
+                message += `Subtotal: KES ${subtotal}%0A%0A`
+            })
+        
+            message += `💰 *TOTAL: KES ${total}*`
+        
+            window.open(
+                `https://wa.me/254722682129?text=${message}`,
+                '_blank'
+            )
+        }
+    </script>
+    {% endblock %}

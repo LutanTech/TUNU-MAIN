@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container" style="padding: 80px 0;">
+    <div style="text-align: center; max-width: 800px; margin: 0 auto 60px;">
+        <h2 style="color: var(--magenta); font-size: 36px; margin-bottom: 15px;">Get In Touch</h2>
+        <p>Have questions about our books or want to place an order? We're here to help.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px;">
+        <div style="background: var(--light-bg); padding: 40px; border-radius: 12px; text-align: center;">
+            <i class="fas fa-phone-alt" style="font-size: 32px; color: var(--magenta); margin-bottom: 20px;"></i>
+            <h3>Call Us</h3>
+            <p>{{ contact_phone }}</p>
+        </div>
+        <div style="background: var(--light-bg); padding: 40px; border-radius: 12px; text-align: center;">
+            <i class="fas fa-envelope" style="font-size: 32px; color: var(--magenta); margin-bottom: 20px;"></i>
+            <h3>Email Us</h3>
+            <p>{{ contact_email }}</p>
+        </div>
+        <div style="background: var(--light-bg); padding: 40px; border-radius: 12px; text-align: center;">
+            <i class="fab fa-whatsapp" style="font-size: 32px; color: #25D366; margin-bottom: 20px;"></i>
+            <h3>WhatsApp</h3>
+            <p>Chat with us directly</p>
+            <a href="https://wa.me/{{ whatsapp_number }}" class="nav-link" style="background: #25D366; display: inline-block; margin-top: 10px;">Open Chat</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
