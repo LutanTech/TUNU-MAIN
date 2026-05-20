@@ -7,18 +7,16 @@ from functools import wraps
 from datetime import datetime, timedelta
 import hashlib, hmac, json, secrets, string, os
 import re
-
+import urllib.parse
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'THIS_IS_SO_SECRET_FOR_2026_TUNU'
+password = urllib.parse.quote_plus(os.getenv("DB_PASSWORD"))
 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
-    'DATABASE_URL',
-    'postgresql://tunupublsh_admin:MY_PASSWORD@127.0.0.1/tunupublsh_main_db'
+app.config['SQLALCHEMY_DATABASE_URI'] = (
+    f"postgresql://tunupublsh_admin:{password}@127.0.0.1/tunupublsh_main_db"
 )
-
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 30
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
