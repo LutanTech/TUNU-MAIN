@@ -10,11 +10,16 @@ import re
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'SUPER_SECRET_KEY_CHANGE_THIS'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tunu.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 30
+app.config['SECRET_KEY'] = 'THIS_IS_SO_SECRET_FOR_2026_TUNU'
 
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv(
+    'DATABASE_URL',
+    'postgresql://tunupublsh_tunupublsh:MY_PASSWORD@localhost/tunupublsh_main_db'
+)
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 30
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
