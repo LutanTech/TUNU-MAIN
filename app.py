@@ -8,9 +8,12 @@ from datetime import datetime, timedelta
 import hashlib, hmac, json, secrets, string, os
 import re
 app = Flask(__name__)
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app.config['SECRET_KEY'] = 'THIS_IS_SO_SECRET_FOR_2026_TUNU'
-DATABASE_URL = os.getenv("DATABASE_URI")
+DATABASE_URL = os.getenv("DB_URL")
 app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 30
@@ -20,6 +23,17 @@ app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'info.tunupublishers@gmail.com'
 app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
 app.config['MAIL_DEFAULT_SENDER'] = ('Tunu Publishers','info.tunupublishers@gmail.com')
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'books')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+from flask import abort
+
+# app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+#     "connect_args": {
+#         "sslmode": "disable"
+#     }
+# }
 
 db = SQLAlchemy(app)
 mail = Mail(app)
@@ -66,8 +80,8 @@ def admin_required(f):
         user = Staff.query.filter_by(id=session.get('staff_id')).first()
         if not user:
             return redirect(url_for('login'))
-        if not user.is_admin:
-            return jsonify({'error':'You do not have enough permisions'}), 403
+        if not user.is_admin and not user.is_super_admin:
+            abort(401, description='You do not have enough permissions to view this page')
         return f(*args, **kwargs)
     return wrapper
 
@@ -88,7 +102,15 @@ class Staff(db.Model):
     is_super_admin = db.Column(db.Boolean, default=False)
     
     def to_dict(self):
-        return {'id':self.id,'name':self.name,'phone':self.phone,'email':self.email,'location':self.location, 'is_active':self.is_active}
+        return {
+            'id':self.id,
+            'name':self.name,
+            'phone':self.phone,
+            'email':self.email,
+            'location':self.location,
+            'is_active':self.is_active,
+            'is_admin':self.is_admin
+            }
 
 class Book(db.Model):
     id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id('BK'))
@@ -352,6 +374,8 @@ def submit_report():
 
 @app.route('/create_dummy')
 def create_dummy():
+    with app.app_context():
+        db.create_all()
     admin = Staff.query.filter_by(phone='0700000000').first()
     if not admin:
         admin = Staff(name='Admin',phone='0700000000',password=generate_password_hash('admin123'),is_admin=True)
@@ -366,40 +390,56 @@ def create_dummy():
     db.session.commit()
     return jsonify({'created':created})
 
-@app.route('/admin/dashboard') 
+@app.route('/admin')
 @login_required
 @admin_required
 def admin_dashboard():
     admin = Staff.query.filter_by(id=session.get('staff_id')).first()
-    
+
+
     allStaff = Staff.query.filter_by(is_super_admin=False).all()
-    staff_dict = [
-        {s.to_dict() for s in allStaff}
-    ]
 
     books = Book.query.filter_by(is_deleted=False).all()
 
-    visits_this_month = Submission.query.filter(Submission.submitted_at >= datetime.utcnow() - timedelta(days=30))
+    visits_this_month = Submission.query.filter(
+        Submission.submitted_at >= datetime.utcnow() - timedelta(days=30)
+    ).count()
 
-    reports_today = Submission.query.filter( Submission.submitted_at >= datetime.utcnow().date())
+    reports_today = Submission.query.filter(
+        Submission.submitted_at >= datetime.utcnow().date()
+    ).count()
 
-    recent_submissions = Submission.query.order_by(Submission.submitted_at.desc()).limit(4).all()
+    recent_submissions = Submission.query.order_by(
+        Submission.submitted_at.desc()
+    ).limit(4).all()
 
-    if not admin.is_super_admin:      
-        log_action(f'Admin {admin.name } accesed their dashboard', 200, admin.id)
+    if admin and not admin.is_super_admin:
+        log_action(
+            f'Admin {admin.name} accessed their dashboard',
+            200,
+            admin.id
+        )
         
+    
+    staff_dict= [s.to_dict() for s in allStaff]
+    
+    # return jsonify({
+    #     'staff': [s.to_dict() for s in allStaff]
+    # }), 200
+
     return render_template(
         'admin.html',
         admin=admin,
         books=books,
-        staff_dict = staff_dict,
+        staff_dict=staff_dict,
         visits_this_month=visits_this_month,
         reports_today=reports_today,
         recent_submissions=recent_submissions,
         start_time=datetime.utcnow()
     )
- 
-@app.route('/api/admin/edit/staff') 
+    
+    
+@app.route('/api/admin/edit/staff', methods=['POST']) 
 @login_required
 @admin_required
 def edit_staff():
@@ -409,7 +449,7 @@ def edit_staff():
     admin = Staff.query.filter_by(id=session.get('staff_id')).first()
     
     staff = Staff.query.filter_by(id=id).first()
-    if not staff():
+    if not staff:
         return jsonify({'error':'Staff not found'}), 404
     if staff.is_super_admin:
         return jsonify({'error':'Unauthorized'}), 401
@@ -449,7 +489,7 @@ def toggle_staff():
     if not staff:
         return jsonify({'error':'Staff not found in Database'}), 404
     if staff.is_super_admin:
-        return jsonify({'error':'You do not have enough permisions to execute this action'}), 401
+        return redirect(url_for(unauthorized(error='You do not have enough permissions to view this page')))
     staff.is_active = not staff.is_active
     staff.deactivated_by = session.get('staff_id')
     staff.deactivated_at = datetime.utcnow() + timedelta(hours=3)
@@ -458,48 +498,77 @@ def toggle_staff():
     if not admin.is_super_admin:      
         log_action(f'Admin {admin.name } togled staff status for {staff.name}', 200, admin.id)
     return jsonify({'msg':'Staff toggled successfully'}), 200
+from werkzeug.utils import secure_filename
 
 @app.route('/api/admin/add_book', methods=['POST'])
 @login_required
 @admin_required
 def add_book():
-    data = request.get_json()
-
-    image = data.get("image")
-    grade = data.get('grade')
-    audience = ''
+    # Capture text fields from standard multi-part form
+    title = request.form.get("title")
+    authors = request.form.get("authors")
+    grade = request.form.get("grade", "")
+    audience = request.form.get("audience", "")
     
-    if len(grade) > 2:
+    # Handle the numeric details with safe defaults
+    try:
+        new_price = float(request.form.get("newPrice", 0))
+        old_price = float(request.form.get("oldPrice", 0)) if request.form.get("oldPrice") else 0
+    except ValueError:
+        return jsonify({'error': 'Invalid format provided for prices.'}), 400
+
+    # Business classification logic for audience/grade matching your system
+    if len(grade) > 2 and not audience:
+        audience = grade
         grade = ''
-        audience = data.get('grade')
+
+    # Handle the structural file upload stream
+    image_file = request.files.get('image')
+    image_url = "https://i.ibb.co/CKRYPD4p/image.png"  # Default if no file is uploaded
+
+    if image_file and image_file.filename != '':
+        # Sanitize filename string to eliminate relative path directory injection attacks
+        filename = secure_filename(image_file.filename)
+        
+        # Append an epoch or unique string prefix if you want to avoid file overwriting
+        unique_filename = f"{int(datetime.utcnow().timestamp())}_{filename}"
+        
+        # Determine target system path
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        
+        try:
+            # Commit binary payload stream directly to the local host operating system storage
+            image_file.save(file_path)
+            # Relative path matching your /static/ blueprint configuration routing setup
+            image_url = f"/static/books/{unique_filename}"
+        except Exception as e:
+            return jsonify({'error': f'Failed writing image file payload to disk storage: {str(e)}'}), 500
+
+    admin = Staff.query.filter_by(id=session.get('staff_id')).first()
     
     try:
         book = Book(
-            title=data.get("title"),
-            image=image or "https://i.ibb.co/CKRYPD4p/image.png",
-            oldPrice=data.get("oldPrice") or 0,
-            newPrice=data.get("newPrice"),
-            discounted=data.get("discounted"),
-            grade = data.get('grade'),
-            authors=data.get('authors'),
-            added_by=session.get('staff.id'),
-            audience = audience
+            title=title,
+            image=image_url,
+            oldPrice=old_price,
+            newPrice=new_price,
+            grade=grade,
+            authors=authors,
+            added_by=session.get('staff_id'),
+            audience=audience
         )
-        book.slug = re.sub(r'[^a-z0-9]+', '_', book.title.lower())[:100].strip('_') 
+        book.set_slug()
         db.session.add(book)
         db.session.commit()
-        
-        admin = Staff.query.filter_by(id=session.get('staff_id')).first()
 
         if not admin.is_super_admin:      
-           log_action(f'Admin {admin.name } added a book by title {book.title}', 200, admin.id)
+           log_action(f'Admin {admin.name} added a book titled {book.title} with local file asset storage.', 200, admin.id)
 
-        return jsonify({"msg": "Book added"}), 200
+        return jsonify({"msg": "Book uploaded and saved successfully to host system storage!"}), 200
     except Exception as e:
         db.session.rollback()
-        log_action(f'Admin {admin.name } encountered error : {str(e)} when adding a book by title {book.title}', 200, admin.id)
-        return jsonify({'error':f'Database error: {str(e)}'}), 500
-
+        return jsonify({'error': f'Database operation error occurred: {str(e)}'}), 500
+    
 @app.route('/api/admin/edit_book', methods=['POST'])
 @login_required
 @admin_required
@@ -563,18 +632,34 @@ def delete_book():
 def not_found(error):
 
     return render_template(
-        '404.html'
+        '404.html', error=error
     ), 404
 
 @app.errorhandler(500)
 def backend_error(error):
+    print(error)
 
     return render_template(
         '500.html',error=error
     ), 404
 
-with app.app_context():
-    db.create_all()
+@app.errorhandler(401)
+def unauthorized(error):
+    return render_template(
+        '401.html',
+        error=error.description
+    ), 401
 
-# if __name__=='__main__':
-#     app.run(debug=True)
+@app.route('/create_db', methods=['GET'])
+def create_db():
+    with app.app_context():
+        try:
+            db.create_all()
+            return jsonify({'msg':'Created tables succesfully'}), 200
+        except Exception as e:
+            return jsonify({'error':f'An error occured: {str(e)}'}), 500
+
+if __name__=='__main__':
+    with app.app_context():
+       db.create_all()
+    app.run(debug=True)
