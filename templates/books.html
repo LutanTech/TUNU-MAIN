@@ -828,6 +828,7 @@
     </section>
 
     <section class="masonry-wrapper">
+        {{ books_data }}
         <div class="container">
             <div class="masonry-grid" id="masonry-book-container"></div>
         </div>
@@ -839,19 +840,7 @@
         let currentCategory = 'all';
         let searchQuery = '';
 
-        window.booksDatabase = [
-            { id: '1', title: 'Mizani', newPrice: 500, oldPrice: 550, url: '/assets/books/mizani.jpeg', group: 'junior', subtitle: 'Junior Sec / General' },
-            { id: '2', title: 'Mpira Wa Sumbi', newPrice: 300, oldPrice: 330, url: '/assets/books/mpira_wa_sumbi.jpeg', group: 'primary', subtitle: 'Grade 4a' },
-            { id: '8', title: 'Lulu Diwani ya Mashairi', newPrice: 500, oldPrice: 0, url: '/assets/books/lulu.jpeg', group: 'general', subtitle: 'General Literary Art' },
-            { id: '12', title: 'Samahani na Hadithi Nyingine', newPrice: 600, oldPrice: 0, url: '/assets/books/samahani.jpeg', group: 'creative', subtitle: 'Creative Storybook' },
-            { id: '16', title: 'Kosa la Popo', newPrice: 300, oldPrice: 0, url: '/assets/books/kosa_la_popo.jpeg', group: 'primary', subtitle: 'Grade 5a' },
-            { id: '17', title: 'Uandishi na Uhariri; Mbinu za Nadharia', newPrice: 1500, oldPrice: 1600, url: '/assets/books/uandishi_na_uhariri.jpeg', group: 'general', subtitle: 'Advanced Academic Text' },
-            { id: '18', title: 'CBC Mathematics Revision', newPrice: 450, oldPrice: 500, url: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400', group: 'revision', subtitle: 'Grade 6 Revision Guide' },
-            { id: '19', title: 'English Grammar Workbook', newPrice: 350, oldPrice: 400, url: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=400', group: 'revision', subtitle: 'Primary Practice Hub' },
-            { id: '20', title: 'Sanaa na Ustadi', newPrice: 480, oldPrice: 0, url: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=400', group: 'creative', subtitle: 'Creative Arts & Music' },
-            { id: '21', title: 'Kiswahili Mazoezi ya Kujifunzia', newPrice: 380, oldPrice: 420, url: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?w=400', group: 'primary', subtitle: 'Grade 3 Work Companion' },
-            { id: '22', title: 'Social Studies & Citizenship', newPrice: 550, oldPrice: 600, url: 'https://images.unsplash.com/photo-1495640388908-05fa85288e61?w=400', group: 'junior', subtitle: 'Junior Secondary Grade 7' }
-        ];
+        window.booksDatabase = {{  books_data | tojson | safe }};
 
         function getDiscount(book) {
             if (!book.oldPrice) return 0;

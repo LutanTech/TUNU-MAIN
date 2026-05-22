@@ -444,7 +444,8 @@ def admin_dashboard():
         recent_submissions=recent_submissions,
         start_time=datetime.utcnow()
     )
-    
+
+
     
 @app.route('/api/admin/edit/staff', methods=['POST']) 
 @login_required
@@ -511,42 +512,33 @@ from werkzeug.utils import secure_filename
 @login_required
 @admin_required
 def add_book():
-    # Capture text fields from standard multi-part form
     title = request.form.get("title")
     authors = request.form.get("authors")
     grade = request.form.get("grade", "")
     audience = request.form.get("audience", "")
     
-    # Handle the numeric details with safe defaults
     try:
         new_price = float(request.form.get("newPrice", 0))
         old_price = float(request.form.get("oldPrice", 0)) if request.form.get("oldPrice") else 0
     except ValueError:
         return jsonify({'error': 'Invalid format provided for prices.'}), 400
 
-    # Business classification logic for audience/grade matching your system
     if len(grade) > 2 and not audience:
         audience = grade
         grade = ''
 
-    # Handle the structural file upload stream
     image_file = request.files.get('image')
     image_url = "https://i.ibb.co/CKRYPD4p/image.png"  # Default if no file is uploaded
 
     if image_file and image_file.filename != '':
-        # Sanitize filename string to eliminate relative path directory injection attacks
         filename = secure_filename(image_file.filename)
         
-        # Append an epoch or unique string prefix if you want to avoid file overwriting
         unique_filename = f"{int(datetime.utcnow().timestamp())}_{filename}"
         
-        # Determine target system path
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
         
         try:
-            # Commit binary payload stream directly to the local host operating system storage
             image_file.save(file_path)
-            # Relative path matching your /static/ blueprint configuration routing setup
             image_url = f"/static/books/{unique_filename}"
         except Exception as e:
             return jsonify({'error': f'Failed writing image file payload to disk storage: {str(e)}'}), 500
