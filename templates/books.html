@@ -828,7 +828,6 @@
     </section>
 
     <section class="masonry-wrapper">
-        {{ books_data }}
         <div class="container">
             <div class="masonry-grid" id="masonry-book-container"></div>
         </div>
@@ -841,6 +840,7 @@
         let searchQuery = '';
 
         window.booksDatabase = {{  books_data | tojson | safe }};
+        console.log(booksDatabase)
 
         function getDiscount(book) {
             if (!book.oldPrice) return 0;
@@ -874,12 +874,12 @@
                     <div class="masonry-item">
                         ${discount > 0 ? `<span class="discount-badge">SAVE ${discount}%</span>` : ''}
                         <div class="book-img-wrapper">
-                            <img src="${book.url.startsWith('http') ? book.url : book.url}" alt="${book.title}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400';">
+                            <img src="${book.image}" alt="${book.title}" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400';">
                         </div>
                         <div class="book-info">
                             <div class="book-details">
                                 <h4>${book.title}</h4>
-                                <p class="book-meta">${book.subtitle}</p>
+                                <p class="book-meta">${book.grade ? `<b> Grade:  </b>${book.grade}` : book.audience}</p>
                                 <div class="book-price">
                                     ${book.oldPrice > 0 ? `<span class="old-price">KES ${book.oldPrice}</span>` : ''}
                                     <span class="new-price">KES ${book.newPrice}</span>
