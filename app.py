@@ -229,6 +229,14 @@ def home():
 def base():
     return render_template('base.html')
 
+    
+@app.route('/delete_db')
+def delete_db():
+    with app.app_context():
+        db.drop_all()
+    return jsonify({'db cleared':True}), 200
+
+
 @app.after_request
 def cache_static_books(response):
     if request.path.startswith('/static/books/'):
@@ -389,7 +397,7 @@ def create_dummy():
     db.session.commit()
     return jsonify({'created':created})
 
-@app.route('/admin')
+@app.route('/cp')
 @login_required
 @admin_required
 def admin_dashboard():
