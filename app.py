@@ -13,8 +13,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app.config['SECRET_KEY'] = 'THIS_IS_SO_SECRET_FOR_2026_TUNU'
-DATABASE_URL = os.getenv("DB_URL")
-app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tunu.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 30
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
