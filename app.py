@@ -29,11 +29,11 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 from flask import abort
 
-# app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-#     "connect_args": {
-#         "sslmode": "disable"
-#     }
-# }
+app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+    "connect_args": {
+        "sslmode": "disable"
+    }
+}
 
 db = SQLAlchemy(app)
 mail = Mail(app)
