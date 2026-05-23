@@ -32,7 +32,7 @@
     <!-- Hero Carousel -->
     <section class="hero-carousel">
         <div class="carousel-slide active">
-            <img src="https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=1600" class="carousel-img" alt="Education">
+            <img src="/static/books/hero-mpira.jpeg" class="carousel-img" alt="Education">
             <div class="container">
                 <div class="carousel-content">
                     <h2>Empowering the Next Generation</h2>
@@ -44,7 +44,7 @@
             </div>
         </div>
         <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1588072432836-e10032774350?w=1600" class="carousel-img" alt="Kids Learning">
+            <img src="/static/books/hero-mizani.jpeg" class="carousel-img" alt="Kids Learning">
             <div class="container">
                 <div class="carousel-content">
                     <h2>Creative Arts & Readers</h2>
@@ -56,7 +56,7 @@
             </div>
         </div>
         <div class="carousel-slide">
-            <img src="https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?w=1600" class="carousel-img" alt="Library">
+            <img src="/static/books/hero-samahani.jpeg" class="carousel-img" alt="Library">
             <div class="container">
                 <div class="carousel-content">
                     <h2>Revision Made Easy</h2>
@@ -86,9 +86,9 @@
                     </button>
                 </div>
                 <div class="category-card">
-                    <img src="https://images.unsplash.com/photo-1588072432836-e10032774350?w=400" alt="Workbooks">
+                    <img src="/static/books/kudurusu_fasihi.jpeg" alt="Workbooks">
                     <h3>Revision Books</h3>
-                    <button class="btn btn-secondary btn-small" onclick="openCart()">
+                    <button class="btn btn-secondary btn-small" onclick="window.location.href='/books?cat=revision'">
                         <i class="fas fa-eye"></i> VIEW REVISION
                     </button>
                 </div>
@@ -119,7 +119,7 @@
     </section>
 
 
-    <a href="https://wa.me/254722682129" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+
 
     <script>
         let currentSlide = 0;
@@ -187,7 +187,7 @@
                                 : ''
                             }
         
-                            <div class="book-img-wrapper">
+                            <div class="book-img-wrapper" onclick="openBookPage('${book.id}')" title="Click to view more">
                                 <img
                                     src="${book.image}"
                                     alt="${book.title}"
@@ -303,6 +303,10 @@
             cart = [];
             saveCart();
             updateCartUI();
+        }
+
+        function openBookPage(id){
+            window.location.href = '/book/' + id
         }
 
         function updateCartUI() {

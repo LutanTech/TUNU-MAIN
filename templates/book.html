@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ book.title }} | TUNU Publishers
+{% endblock %}
+
+{% block content %}
+<style>
+    :root {
+        --brand-purple: var(--magenta);
+        --brand-purple-dark: var(--dark-magenta);
+        --brand-orange: var(--orangered);
+        --brand-orange-dark: #D43F00;
+        --bg-slate: #FAF9FB;
+        --border-slate: #F1EDF5;
+        --text-slate-dark: #2D1A2D;
+        --text-slate-muted: #7E6E7E;
+    }
+
+    .tunu-detail-viewport {
+        background-color: var(--bg-slate);
+        min-height: 100vh;
+        padding: 40px 0;
+        font-family: 'Poppins', sans-serif;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-detail-container {
+        max-width: 1024px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .tunu-back-nav {
+        margin-bottom: 28px;
+    }
+
+    .tunu-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--brand-purple);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+        transition: transform 0.2s ease, color 0.2s ease;
+    }
+
+    .tunu-back-link:hover {
+        color: var(--brand-orange);
+        transform: translateX(-4px);
+    }
+
+    .tunu-detail-card {
+        background-color: #FFFFFF;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        display: flow-root;
+        padding: 24px;
+        box-shadow: 0 10px 30px rgba(139, 0, 139, 0.04);
+    }
+
+    @media (min-width: 768px) {
+        .tunu-detail-card {
+            padding: 40px;
+        }
+    }
+
+    .tunu-media-pane {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 24px;
+        width: 100%;
+    }
+
+    @media (min-width: 768px) {
+        .tunu-media-pane {
+            float: left;
+            width: auto;
+            margin-right: 32px;
+            margin-bottom: 20px;
+        }
+    }
+
+    .tunu-img-box {
+        width: 100%;
+        max-width: 360px;
+        background-color: #FAF6FA;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: inset 0 2px 8px rgba(0,0,0,0.02);
+    }
+
+    .tunu-img-box img {
+        width: 100%;
+        height: auto;
+        object-fit: contain;
+        border-radius: 6px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .tunu-stats-grid {
+        width: 100%;
+        max-width: 360px;
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    .tunu-stat-cell {
+        background-color: #FAF8FB;
+        border: 1px solid var(--border-slate);
+        border-radius: 8px !important;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .tunu-stat-label {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--text-slate-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin: 0;
+    }
+
+    .tunu-stat-val {
+        font-size: 16px;
+        font-weight: 800;
+        margin-top: 4px;
+        margin-bottom: 0;
+    }
+
+    .tunu-stat-val.purple {
+        color: var(--brand-purple);
+    }
+
+    .tunu-stat-val.orange {
+        color: var(--brand-orange);
+    }
+
+    .tunu-badge-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .tunu-badge {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 50px !important;
+    }
+
+    .tunu-badge.purple {
+        background-color: #FDF4FD;
+        color: var(--brand-purple);
+        border-color: #F5D3F5;
+    }
+
+    .tunu-badge.orange {
+        background-color: #FFFAF5;
+        color: var(--brand-orange);
+        border-color: #FFE6D5;
+    }
+
+    .tunu-badge.mono {
+        background-color: #F7F5F8;
+        color: var(--text-slate-muted);
+        border-color: var(--border-slate);
+    }
+
+    .tunu-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: var(--text-slate-dark);
+        line-height: 1.3;
+        margin: 0 0 8px 0;
+    }
+
+    @media (min-width: 768px) {
+        .tunu-title {
+            font-size: 30px;
+        }
+    }
+
+    .tunu-authors {
+        font-size: 13px;
+        color: var(--text-slate-muted);
+        font-weight: 500;
+        margin: 0 0 24px 0;
+    }
+
+    .tunu-authors-highlight {
+        color: var(--brand-purple);
+        font-weight: 700;
+    }
+
+    .tunu-pricing-strip {
+        border-top: 1px dashed var(--border-slate);
+        border-bottom: 1px dashed var(--border-slate);
+        padding: 16px 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .tunu-price-current {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--brand-orange);
+    }
+
+    .tunu-price-original {
+        color: var(--text-slate-muted);
+        text-decoration: line-through;
+        font-size: 14px;
+        font-weight: 500;
+    }
+
+    .tunu-save-tag {
+        background-color: #FEF2F2;
+        color: #DC2626;
+        border: 1px solid #FEE2E2;
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        border-radius: 50px !important;
+    }
+
+    .tunu-section-heading {
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--text-slate-dark);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        margin: 0 0 12px 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .tunu-section-heading i {
+        color: var(--brand-purple);
+    }
+
+    .tunu-book-description {
+        margin-bottom: 28px;
+        background-color: #FCFAFD;
+        border: 1px solid var(--border-slate);
+        border-radius: 8px !important;
+        padding: 20px;
+    }
+
+    .tunu-description-paragraph {
+        font-size: 14px;
+        line-height: 1.7;
+        color: #4A3E4A;
+        margin: 0 0 14px 0;
+    }
+
+    .tunu-description-paragraph:last-child {
+        margin-bottom: 0;
+    }
+
+    .tunu-meta-log {
+        background-color: #FCFAFD;
+        border: 1px solid var(--border-slate);
+        border-radius: 8px !important;
+        padding: 16px;
+        font-size: 12px;
+        color: #4A3E4A;
+        margin-bottom: 28px;
+    }
+
+    .tunu-meta-row {
+        margin: 6px 0;
+        display: flex;
+        justify-content: space-between;
+        border-bottom: 1px solid #FAF6FA;
+        padding-bottom: 6px;
+    }
+
+    .tunu-meta-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+        margin-bottom: 0;
+    }
+
+    .tunu-meta-key {
+        font-weight: 700;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-meta-val {
+        font-weight: 500;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-action-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        border-top: 1px solid var(--border-slate);
+        padding-top: 24px;
+        clear: both;
+    }
+
+    @media (min-width: 480px) {
+        .tunu-action-panel {
+            flex-direction: row;
+        }
+    }
+
+    .tunu-btn {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 14px 24px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        text-decoration: none;
+        border-style: solid;
+        border-width: 1px;
+        border-radius: 50px !important;
+        cursor: pointer;
+        transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .tunu-btn:hover {
+        transform: translateY(-2px);
+    }
+
+    .tunu-btn-orange {
+        background-color: var(--brand-orange);
+        border-color: var(--brand-orange-dark);
+        color: #FFFFFF;
+        box-shadow: 0 6px 16px rgba(255, 69, 0, 0.2);
+    }
+
+    .tunu-btn-orange:hover {
+        background-color: var(--brand-orange-dark);
+        box-shadow: 0 8px 24px rgba(255, 69, 0, 0.3);
+    }
+
+    .tunu-btn-purple {
+        background-color: var(--brand-purple);
+        border-color: var(--brand-purple-dark);
+        color: #FFFFFF;
+        box-shadow: 0 6px 16px rgba(139, 0, 139, 0.15);
+    }
+
+    .tunu-btn-purple:hover {
+        background-color: var(--brand-purple-dark);
+        box-shadow: 0 8px 24px rgba(139, 0, 139, 0.25);
+    }
+</style>
+
+<div class="tunu-detail-viewport">
+    <div class="tunu-detail-container">
+        
+        <div class="tunu-back-nav">
+            <a href="/books" class="tunu-back-link">
+                <i class="fa-solid fa-arrow-left"></i> Back to Catalog
+            </a>
+        </div>
+
+        <div class="tunu-detail-card">
+            
+            <div class="tunu-media-pane">
+                <div class="tunu-img-box">
+                    <img src="{{ book.image }}" alt="{{ book.title }}" onerror="this.src='https://i.ibb.co/CKRYPD4p/image.png'">
+                </div>
+                
+                <div class="tunu-stats-grid">
+                    <div class="tunu-stat-cell">
+                        <p class="tunu-stat-label">Total Views</p>
+                        <p class="tunu-stat-val purple">{{ book.views or 0 }}</p>
+                    </div>
+                    <div class="tunu-stat-cell">
+                        <p class="tunu-stat-label">Copies Sold</p>
+                        <p class="tunu-stat-val orange">{{ book.sold or 0 }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tunu-badge-row">
+                {% if book.grade %}
+                <span class="tunu-badge purple">{{ book.grade }}</span>
+                {% endif %}
+                {% if book.audience %}
+                <span class="tunu-badge orange">{{ book.audience }}</span>
+                {% endif %}
+                <span class="tunu-badge mono">ID: {{ book.id }}</span>
+            </div>
+
+            <h1 class="tunu-title">{{ book.title }}</h1>
+            
+            <p class="tunu-authors">
+                By <span class="tunu-authors-highlight">{{ book.authors or "Tunu Publishers" }}</span>
+            </p>
+
+            <div class="tunu-pricing-strip">
+                <span class="tunu-price-current">KSh {{ "%.2f"|format(book.newPrice) }}</span>
+                {% if book.oldPrice and book.oldPrice > 0 %}
+                <span class="tunu-price-original">KSh {{ "%.2f"|format(book.oldPrice) }}</span>
+                <span class="tunu-save-tag">
+                    Save {{ "%.0f"|format(((book.oldPrice - book.newPrice) / book.oldPrice) * 100) }}%
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="tunu-book-description">
+                <h3 class="tunu-section-heading">
+                    <i class="fa-solid fa-book-open"></i> About this book
+                </h3>
+                {% if book.desc %}
+                    {% for paragraph in book.desc.split('\n\n') if paragraph.strip() %}
+                    <p class="tunu-description-paragraph">{{ paragraph }}</p>
+                    {% endfor %}
+                {% else %}
+                <p> Description not provided<p>
+                <p> Description not provided<p>
+                <p> Description not provided<p>
+ 
+                {% endif %}
+            </div>
+
+            <div style="margin-bottom: 28px;">
+                <h3 class="tunu-section-heading">
+                    <i class="fa-solid fa-bookmark"></i> Publication Details
+                </h3>
+                <div class="tunu-meta-log">
+                    <div class="tunu-meta-row">
+                        <span class="tunu-meta-key">System Identifier</span>
+                        <span class="tunu-meta-val">{{ book.id }}</span>
+                    </div>
+                    <div class="tunu-meta-row">
+                        <span class="tunu-meta-key">Slug Reference</span>
+                        <span class="tunu-meta-val">{{ book.slug or 'n/a' }}</span>
+                    </div>
+                    <div class="tunu-meta-row">
+                        <span class="tunu-meta-key">Distribution Scope</span>
+                        <span class="tunu-meta-val">{% if book.audience %}{{ book.audience }}{% else %}General Distribution{% endif %}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tunu-action-panel">
+                <button onclick="addCurrentToCart('{{ book.id }}', '{{ book.title | escape }}', {{ book.newPrice }}, '{{ book.image }}')" class="tunu-btn tunu-btn-orange">
+                    <i class="fa-solid fa-cart-plus"></i> Add to Cart
+                </button>
+                <a href="/checkout" class="tunu-btn tunu-btn-purple">
+                    <i class="fa-solid fa-credit-card"></i> Buy Now
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function addCurrentToCart(bookId, title, price, image) {
+        let cart = JSON.parse(localStorage.getItem('cart') || '[]');
+        let itemIndex = cart.findIndex(item => item.id === bookId);
+        
+        if (itemIndex > -1) {
+            cart[itemIndex].quantity += 1;
+        } else {
+            cart.push({
+                id: bookId,
+                title: title,
+                newPrice: parseFloat(price),
+                image: image,
+                quantity: 1
+            });
+        }
+        
+        localStorage.setItem('cart', JSON.stringify(cart));
+        
+        if (typeof updateCartUI === 'function') {
+            updateCartUI();
+        }
+        
+        if (window.innerWidth > 768) {
+            if (typeof openCart === 'function') {
+                openCart();
+            }
+        } else {
+            if (typeof showCartAlert === 'function') {
+                showCartAlert(true);
+            }
+        }
+    }
+</script>
+{% endblock %}

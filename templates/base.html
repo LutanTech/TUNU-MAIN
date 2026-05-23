@@ -156,10 +156,36 @@
         display: flex;
         gap: 20px;
     }
+    .float-content{
+        position:relative;
+    }
+    .float-count{
+        background:red;
+        font-size:small;
+        padding:2px;
+        width:20px;
+        height:20px;
+        border-radius:50%;
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        position:absolute;
+        right:-20px;
+        font-weight:bolder;
+
+    }
 
     .contact-item i {
         color: var(--magenta);
         margin-right: 8px;
+    }
+    .v{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: grey;
+        font-size: small;
+        margin-bottom: 20px;
     }
 
     .search-area {
@@ -382,26 +408,38 @@
         cursor: pointer;
         transition: all 0.3s;
     }
-
-    .count-span{
-        background: red;
-        border-radius: 50%;
-        font-size: small;
-        width: 20px;
-        height: 20px;
+    .mobile-menu-btn{
+        background: rgba(0, 128, 0, 0);
         display: flex;
-        justify-content: center;
-        align-items: center;
-        position: absolute;
-        right: -10px;
-        top: -10px;
-
+        gap: 2px;
+        width: 40px;
+        padding: 2px;
+        z-index: 30000000000000000000;
+        border: 0;
+        height: 30px;
+        justify-content: space-between;
+        flex-direction: column;
+        cursor: pointer;
+        &:hover{
+            .span{
+                background: rgb(78, 7, 78);
+            }
+        }
+        .span{
+            background: rgb(255, 255, 255);
+            padding: 2px;
+            border-radius: 5px;
+            width: 100%;
+            height: 5px;
+            box-shadow: 2px 2px 5px black;
+        }
     }
+
+
     @media (min-width:768px) {
        .mobile-menu-btn{
         display: none;
-
-    } 
+      } 
     }
     
 
@@ -451,6 +489,60 @@
         cursor: pointer;
         transition: all 0.3s;
     }
+    .mobile-menu-overlay{
+        height: 100%;
+        width: 100%;
+        background: rgba(0, 0, 0, 0.312);
+        position: fixed;
+        display: flex;
+        justify-content: start;
+        align-items: start;
+        z-index: 30000;
+        top: 0;
+    }
+    .mobile-menu{
+        top: 0;
+        width: 100%;
+        max-height: 100%;
+        background: white;
+        min-height: 300px;
+        max-width: 500px;
+        margin: 0 auto;
+        position: relative;
+    }
+    .flex{
+        display: flex;
+    }
+    .none{
+        display: none;
+    }
+    .mobile-search{
+        display: flex;
+        padding: 10px;
+        gap: 10px;
+        input{
+            padding: 5px 10px;
+            border: 2px solid rgb(200, 0, 255);
+            width: 100%;
+            outline: 0;
+            border-radius: 2px;
+
+        }
+        &:focus{
+            outline: 2px solid magenta;
+        }
+
+    }
+    .mobile-search-icon{
+        background: magenta;
+        padding: 2px 10px;
+        cursor: pointer;
+        border-radius: 2px;
+        color: white;
+        &:active{
+            scale: 0.9;
+        }
+    }
 
     .tab-btn.tab-active { background: var(--magenta); color: white; }
 
@@ -458,6 +550,22 @@
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 20px;
+    }
+    .empty-cart{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+        gap: 20px;
+        border: 1px solid #0000001f;
+        flex-grow: 1;
+        height: 100%;
+        flex-direction: column;
+        border-radius: 10px;
+        i{
+            font-size:3em;
+            opacity:0.4;
+        }
     }
 
     .book-card {
@@ -489,21 +597,31 @@
         align-items: center;
         max-height:200px;
         justify-content: center;
-        object-fit:contain;
+        object-fit:cover;
+        cursor: pointer;
     }
 
 
     .book-img-wrapper img {
-       max-height: 200px; 
-        width: 100%; 
-        object-fit: contain;
-       }
+        max-height: 200px; 
+         width: 100%; 
+         object-fit: cover;
+        }
+    @media (min-width:768px) {
+        
+    .book-img-wrapper img {
+        max-height: 200px; 
+         width: 100%; 
+         object-fit: contain;
+        }
+        
+    }
 
     /* --- CART DRAWER --- */
     .cart-drawer {
         position: fixed;
         top: 0;
-        padding-bootom:10px;
+        padding-bottom:10px;
         right: -450px;
         width: 100%;
         max-width: 450px;
@@ -630,30 +748,156 @@
         font-size: 14px;
     }
 
-    .whatsapp-float {
+    .whatsapp-float, .cart-float {
         position: fixed;
         bottom: 30px;
         right: 30px;
         background: #25d366;
         color: white;
-        width: 65px;
-        height: 65px;
+        width: 45px;
+        height: 45px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 35px;
+        font-size: 25px;
         z-index: 1000;
+        cursor:pointer;
         text-decoration: none;
         box-shadow: 0 10px 25px rgba(37, 211, 102, 0.4);
         transition: transform 0.3s;
     }
+    .cart-float{
+        background:rgb(141, 37, 211);
+        bottom:90px;
+    }
 
-    .whatsapp-float:hover { transform: scale(1.1) rotate(5deg); }
+    .whatsapp-float:hover, .cart-float:hover { transform: scale(1.1) rotate(5deg); }
 
     @media (max-width: 768px) {
         .hero-carousel { height: 400px; }
         .header-content { padding: 12px 20px; }
+    }
+    .alert{
+        position:fixed;
+        top:10px;
+        right:-100%;
+        padding:10px 20px;
+        max-width:300px;
+        box-shadow:5px 5px 10px rgba(0, 0, 0, 0.23);
+        z-index:300000000000000000;
+        background: white;
+        display:flex;
+        gap:10px;
+        border-radius:5px;
+        transition: all 0.5s ease-in-out;
+    }
+    .alert.seen{
+        right: 10px;
+        transition: all 0.5s ease-in-out;
+    }
+    .alert-icon{
+        font-size:2em;
+        border-right:2px solid  rgba(0, 0, 0, 0.58);
+        padding-right:10px;
+    }
+    .alert-title{
+        font-weight:700;
+    }
+    .alert-text{
+        font-size:small;
+    }
+    .-error{
+        i{
+            color:red;
+        }
+        .alert-title{
+            color:red;
+        }
+    }
+    .-success{
+        i{
+            color:green;
+        }
+        .alert-title{
+            color:green;
+        }
+    }
+    .-info{
+        i{
+            color:blue;
+        }
+        .alert-title{
+            color:blue;
+        }
+    }
+    .cart-alert{
+        position: fixed;
+        bottom: -10%;
+        max-width: 200px;
+        margin: auto;
+        background: #ff56ff;
+        z-index: 30000;
+        display: flex;
+        gap: 10px;
+        padding: 2px 10px;
+        left: 0;
+        right: 0;
+        border-radius: 5px;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        transition: all 0.5s ease-in-out;
+        pointer-events:none;
+    }
+    .cart-alert.seen{
+        bottom:10%;
+        transition: all 0.5s ease-in-out;
+
+    }
+    .menu-items{
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding: 10px;
+    }
+    .mobile-nav-link{
+        padding: 4px 10px;
+        color: magenta;
+        flex-grow: 1;
+        background: #00000007;
+        text-decoration: none;
+        &:hover{
+            background: #00000022;
+        }
+    }
+    .mobile-tunu-logo{
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0;
+        img{
+            width: 100px;
+            margin: 10px auto;
+        }
+    }
+    .mobile-menu-close{
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    font-size: 2em;
+    display: flex;
+    justify-content: center;
+    color: red;
+    border: 1px solid;
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    cursor: pointer;
+    &:active{
+        scale: 0.9;
+    }
     }
 </style>
 </head>
@@ -677,7 +921,38 @@
             </div>
         </div>
     </div>
+    <link rel="stylesheet" href="static/assets/main.css">
     
+    <div class="mobile-menu-overlay none">
+        
+        <div class="mobile-menu ">
+            <div class="menu-close">
+                <button class="mobile-menu-close" onclick="toggleMenu()">
+                    &times;
+                </button>
+            </div>
+            <div class="mobile-tunu-logo">
+                <img src="/static/icons/tunu_logo.png" alt="">
+                <b>TUNU PUBLISHERS</b>
+            </div>
+            <div class="mobile-search">
+                <input type="search" id="mobile-menu-search" placeholder="Search books...">
+                <div class="mobile-search-icon" id="mobile-search-btn"> <i class="fa fa-search"></i></div>
+            </div>
+            <div class="menu-items">
+                <a href="/" class="mobile-nav-link"> <i class="fas fa-home"></i> Home</a>
+                <a href="/books" class="mobile-nav-link"> <i class="fas fa-book"></i> Books</a>
+                <a href="/books?cat=junior" class="mobile-nav-link"> <i class="fas fa-school"></i> Junior School</a>
+                <a href="/books?cat=revision" class="mobile-nav-link"> <i class="fas fa-pen"></i> Revision</a>
+                <a href="/about" class="mobile-nav-link"> <i class="fas fa-info-circle"></i> About Us</a>
+                <a href="/contact_us" class="mobile-nav-link"> <i class="fas fa-phone"> </i> Contact</a>
+            </div>
+
+            <p class="v">
+             <i class="fas fa-code" style="margin-right: 10px;" title="Developed by 🌐 Lutan [+2547 11 80 82 86]"></i><i> v2.4.0 </i>
+            </p>
+        </div>
+    </div>
     <header>
         <div class="container header-content">
             <a href="#" class="logo-area">
@@ -695,9 +970,10 @@
                 <a href="/about" class="nav-link">About Us</a>
                 <a href="/contact_us" class="nav-link">Contact</a>
             </nav>
-            <button class="mobile-menu-btn" onclick="openCart()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer; position:relative;">
-                <div class="count-span"></div>
-                <i class="fas fa-shopping-cart"></i>
+            <button class="mobile-menu-btn" onclick="toggleMenu()">
+                <div class="span"></div>
+                <div class="span"></div>
+                <div class="span"></div>
             </button>
         </div>
     </header>
@@ -722,8 +998,17 @@
     <main>
         {% block content %}{% endblock %}
     </main>
+    <a href="https://wa.me/254722682129" target="_blank" class="whatsapp-float"><i class="fab fa-whatsapp"></i></a>
+    <div class="cart-float" onclick="openCart()">
+        <div class="float-content">
+            <div class="float-count">0 </div>
+        <i class="fas fa-shopping-cart"></i>
+        </div>
+    </div>
 <!-- Footer -->
+
 <footer>
+
     <div class="container">
         <div class="footer-grid">
             <div>
@@ -741,7 +1026,7 @@
             </div>
 
             <div class="footer-col">
-                <h4>Quick Links</h4>
+                <h4>Quick Links</h4> 
                 <ul class="footer-links">
                     <li><a href="/">Home</a></li>
                     <li><a href="/about">About TUNU</a></li>
@@ -757,7 +1042,7 @@
                     <li><a href="/orders">Order Tracking</a></li>
                     <li><a href="/delivery_policy">Delivery Policy</a></li>
                     <li><a href="/privacy_policy">Privacy Policy</a></li>
-                    <li><a href="terms_of_service">Terms of Service</a></li>
+                    <li><a href="/terms_of_service">Terms of Service</a></li>
                     <li><a href="/contact_us">Contact Us</a></li>
                 </ul>
             </div>
@@ -793,11 +1078,29 @@
 
             const container = document.getElementById('cart-items-container')
             const total = document.getElementById('cart-total-price')
-            const count = document.querySelector('.count-span')
+            const floatCount = document.querySelector('.float-count')
         
-            if (!container || !total || !count) return
-        
+            if (!container || !total || !floatCount){
+                
+              return  
+            } 
+
             container.innerHTML = ''
+
+            if(cart.length < 1){
+                container.innerHTML = `
+                <div class="empty-cart">
+                <i class="fas fa-briefcase"></i>
+                <br>
+                Your cart is Empty
+            
+            </div>
+                `
+                setTimeout(() =>{
+            updateCartUI();
+                }, 1000)
+            }
+        
         
             let sum = 0
         
@@ -834,9 +1137,9 @@
             })
         
             total.innerText = `KES ${sum.toLocaleString()}`
-            count.innerText = cart.length
         
             localStorage.setItem('cart', JSON.stringify(cart))
+            floatCount.textContent = cart.length || 0
         }
         
         function saveCart() {
@@ -872,10 +1175,15 @@
             saveCart()
         
             updateCartUI();
+            if(window.innerWidth > 768){
             openCart();
+            } else{
+            showCartAlert('true')
+            }
         }
 
         function removeFromCart(index) {
+            updateCartUI();
             cart.splice(index, 1);
             saveCart()
             updateCartUI();
@@ -884,6 +1192,7 @@
         function openCart() {
             document.getElementById('cart-drawer').classList.add('open');
             document.getElementById('overlay').style.display = 'block';
+            updateCartUI()
         }
 
         function closeCart() {
@@ -904,20 +1213,99 @@
     
         document.addEventListener('DOMContentLoaded', ()=>{
             const inp = document.querySelector('#search-input')
+            const mobile_inp = document.querySelector('#mobile-menu-search')
             const sbtn = document.querySelector('.search-btn')
-            let query = inp.value
+            const mobile_sbtn = document.querySelector('#mobile-search-btn')
+            let query = inp.value || mobile_inp.value
+
             inp.addEventListener('keypress', (e)=>{
                 query = inp.value
                 if(e.key == 'Enter'){
                     window.location.href = '/search?q=' + query
                 }
             })
-            btn.addEventListener('click', (e)=>{
+
+            sbtn.addEventListener('click', (e)=>{
                 query = inp.value
-                window.location.href = '/search/?q=' + query
+                window.location.href = '/search?q=' + query
             })
 
+
+            mobile_inp.addEventListener('keypress', (e)=>{
+                query = mobile_inp.value
+                if(e.key == 'Enter'){
+                    window.location.href = '/search?q=' + query
+                }
+            })
+
+            mobile_sbtn.addEventListener('click', (e)=>{
+                query = mobile_inp.value
+                window.location.href = '/search?q=' + query
+            })
+        
+
         })
+
+        function showAlert(type, text){
+            const div = document.createElement('div')
+            div.className = 'alert'
+            div.innerHTML = `
+                <div class="alert-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div class="alert-content">
+                    <div class="alert-title"> ${String(type).toLocaleUpperCase()} </div>
+                    <div class="alert-text">${text} </div> 
+                </div>            
+            `
+            div.classList.add(`-${type}`)
+            div.classList.add('seen')
+            document.body.appendChild(div)
+            setTimeout(() =>{
+                div.classList.remove('seen')
+            }, 5000)
+            setTimeout(() =>{
+                div.remove()
+            }, 8000)
+
+
+        }
+
+        function showCartAlert(success){
+            if(success){
+            const div = document.createElement('div')
+            div.className = 'cart-alert'
+            div.innerHTML = `  
+                <div class="cart-alert-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="cart-alert-content">
+                    <div class="cart-alert-text"> Added to Cart </div> 
+                </div> `
+            document.body.appendChild(div)
+            div.classList.add('seen')
+            setTimeout(() =>{
+                div.classList.remove('seen')
+            }, 5000)
+            setTimeout(() =>{
+                div.remove()
+            }, 8000)
+        } else{
+            showAlert('error', 'Cart Update Error')
+        }
+        }
+
+        function  toggleMenu(){
+            const menu = document.querySelector('.mobile-menu-overlay')
+            if(menu.classList.contains('flex')){
+                menu.classList.add('none')
+                menu.classList.remove('flex')
+
+            } else{
+                menu.classList.add('flex')
+                menu.classList.remove('none')
+            }
+        }
     </script>
     {% block extra_js %}{% endblock %}
 </body>

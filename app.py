@@ -1,14 +1,23 @@
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
-from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timedelta
+from functools import wraps
+import hashlib
+import hmac
+import json
+import os
+import re
+import secrets
+import string
+
+from dotenv import load_dotenv
+from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import abort
 from flask_mail import Mail
 from flask_migrate import Migrate
-from werkzeug.security import generate_password_hash, check_password_hash
-from functools import wraps
-from datetime import datetime, timedelta
-import hashlib, hmac, json, secrets, string, os
-import re
+from flask_sqlalchemy import SQLAlchemy
+from werkzeug.security import check_password_hash, generate_password_hash
+from werkzeug.utils import secure_filename
 app = Flask(__name__)
-from dotenv import load_dotenv
+
 
 load_dotenv()
 
@@ -26,7 +35,7 @@ UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'books')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-from flask import abort
+
 
 # app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
 #     "connect_args": {
@@ -126,13 +135,14 @@ class Book(db.Model):
     deleted_by = db.Column(db.String(20), db.ForeignKey('staff.id') )
     views = db.Column(db.Integer, default=0)
     sold = db.Column(db.Integer, default=0)
+    desc = db.Column(db.Text)
     
     
     def set_slug(self):
         self.slug = re.sub(r'[^a-z0-9]+', '_', self.title.lower())[:100].strip('_')   
              
     def to_dict(self):
-        return {'id':self.id,'title':self.title,'image':self.image,'grade':self.grade,'audience':self.audience,'authors':self.authors,'oldPrice':self.oldPrice,'newPrice':self.newPrice, "slug": self.slug}
+        return {'id':self.id,'title':self.title,'image':self.image,'grade':self.grade,'audience':self.audience,'authors':self.authors,'oldPrice':self.oldPrice,'newPrice':self.newPrice, "slug": self.slug, 'desc':self.desc}
 
 class Submission(db.Model):
     id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id('SUB', 4))
@@ -265,9 +275,10 @@ def search():
     for b in books:
         results.append({
             'title': b.title,
-            'url': b.image,
+            'image': b.image,
             'grade': b.grade,
-            'newPrice': b.newPrice
+            'newPrice': b.newPrice,
+            'oldPrice': b.oldPrice,
         })
     
     return render_template('search.html', results=results, query=query_param)
@@ -526,7 +537,13 @@ def toggle_staff():
     if not admin.is_super_admin:      
         log_action(f'Admin {admin.name } togled staff status for {staff.name}', 200, admin.id)
     return jsonify({'msg':'Staff toggled successfully'}), 200
-from werkzeug.utils import secure_filename
+
+@app.route('/book/<string:book_id>')
+def book_detail(book_id):
+    book = Book.query.filter_by(id=book_id, is_deleted=False).first_or_404()
+    book.views = (book.views or 0) + 1
+    db.session.commit()
+    return render_template('book.html', book=book.to_dict())
 
 @app.route('/api/admin/add_book', methods=['POST'])
 @login_required

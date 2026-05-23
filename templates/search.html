@@ -9,12 +9,60 @@
     {% if results %}
     <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px;">
         {% for book in results %}
-        <div style="background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px; text-align: center;">
-            <img src="{{ book.url }}" style="width: 100%; height: 200px; object-fit: contain; margin-bottom: 15px;">
-            <h3>{{ book.title }}</h3>
-            <p>{{ book.grade }}</p>
-            <p style="color: var(--orangered); font-weight: bold;">KSh {{ book.newPrice }}</p>
+
+        <div class="book-card">
+        
+            <div class="book-img-wrapper" onclick="openBookPage('{{book.id}}')" title="Click to view more">
+                <img
+                    src="{{book.image}}"
+                    alt="{{book.title}}"
+                >
+            </div>
+        
+            <h4 style="font-size:14px;">
+                {{book.title}}
+            </h4>
+        
+            <p style="
+                color:#888;
+                font-size:12px;
+            ">
+                {% if book.grade %}
+                    Grade: {{book.grade}}
+                {% else %}
+                    {{book.audience}}
+                {% endif %}
+            </p>
+        
+            <div style="font-weight:bold;">
+        
+                {% if book.oldPrice > 0 %}
+                    <span style="
+                        text-decoration:line-through;
+                        color:orangered;
+                        font-size:12px;
+                        margin-right:8px;
+                    ">
+                        KES {{book.oldPrice}}
+                    </span>
+                {% endif %}
+        
+                <span style="color:var(--magenta);">
+                    KES {{book.newPrice}}
+                </span>
+        
+            </div>
+        
+            <button
+                onclick="addToCart('{{book.id}}', '{{category}}')"
+                class="btn btn-secondary btn-small"
+            >
+                <i class="fas fa-cart-plus"></i>
+                ADD TO CART
+            </button>
+        
         </div>
+        
         {% endfor %}
     </div>
     {% else %}
@@ -25,4 +73,8 @@
     </div>
     {% endif %}
 </div>
+<script>
+    window.booksDatabase = {{ results | tojson | safe }};
+    console.log(db);
+</script>
 {% endblock %}
