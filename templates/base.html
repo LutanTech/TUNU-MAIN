@@ -666,7 +666,7 @@
             </div>
             <div class="search-area">
                 <div class="search-box">
-                    <input type="text" placeholder="Search for books...">
+                    <input type="text" placeholder="Search for books..." id="search-input">
                     <button class="search-btn"><i class="fas fa-search"></i></button>
                 </div>
                 <button class="cart-trigger" onclick="openCart()">
@@ -900,6 +900,24 @@
                 window.location.href = '/cart'
             }
         }
+
+    
+        document.addEventListener('DOMContentLoaded', ()=>{
+            const inp = document.querySelector('#search-input')
+            const sbtn = document.querySelector('.search-btn')
+            let query = inp.value
+            inp.addEventListener('keypress', (e)=>{
+                query = inp.value
+                if(e.key == 'Enter'){
+                    window.location.href = '/search?q=' + query
+                }
+            })
+            btn.addEventListener('click', (e)=>{
+                query = inp.value
+                window.location.href = '/search/?q=' + query
+            })
+
+        })
     </script>
     {% block extra_js %}{% endblock %}
 </body>

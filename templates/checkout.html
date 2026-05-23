@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tunu Publishers - Secure Checkout</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brandPurple: '#800080',
+                        brandPurpleDark: '#550055',
+                        brandOrange: '#FF4F01',
+                        brandOrangeDark: '#D43F00',
+                    },
+                    borderRadius: {
+                        'none': '0px',
+                        'sm': '2px',
+                        'md': '2px',
+                        'lg': '2px',
+                        'xl': '2px',
+                        '2xl': '2px',
+                        'full': '9999px'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * {
+            border-radius: 2px !important;
+        }
+        .no-round-override {
+            border-radius: 9999px !important;
+        }
+    </style>
+</head>
+<body class="bg-[#F8FAFC] font-sans text-[#1E293B] min-h-screen flex flex-col justify-between antialiased">
+
+    <div id="status-toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full"></div>
+
+    <header class="bg-brandPurple text-white shadow-sm border-b border-brandPurpleDark/20 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-14">
+                <a href="/" class="flex items-center gap-2">
+                    <span class="bg-white text-brandPurple font-black px-2.5 py-0.5 text-base tracking-wider">TUNU</span>
+                    <span class="font-bold text-xs tracking-widest text-purple-100 hidden sm:inline-block">SECURE GATEWAY</span>
+                </a>
+                <div class="flex items-center gap-4">
+                    <a href="/books" class="text-xs text-purple-200 hover:text-white transition-colors font-semibold flex items-center gap-1">
+                        <i class="fa-solid fa-arrow-left text-[10px]"></i> Keep Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            <div class="lg:col-span-7 space-y-4">
+                
+                <div class="bg-white border border-slate-200 shadow-sm p-5">
+                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
+                        <span class="bg-brandPurple text-white h-5 w-5 flex items-center justify-center font-bold text-[10px]">1</span>
+                        Customer & Delivery Information
+                    </h2>
+                    <form id="delivery-form" class="space-y-3">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
+                                <input type="text" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Node</label>
+                                <input type="email" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                                <input type="tel" required placeholder="e.g. 07XXXXXXXX" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Delivery City / Town</label>
+                                <input type="text" required placeholder="e.g. Nairobi, Kisumu" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Detailed Physical Address / Instructions</label>
+                            <textarea rows="2" required placeholder="Building, Street, Apartment Number, Office details" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50"></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-white border border-slate-200 shadow-sm">
+                    <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
+                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+                            <span class="bg-brandPurple text-white h-5 w-5 flex items-center justify-center font-bold text-[10px]">2</span>
+                            Select Payment Methodology
+                        </h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 border-b border-slate-200">
+                        <button onclick="togglePaymentTab('mpesa')" id="tab-mpesa" class="py-3 text-center border-r border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-brandPurple border-b-2 border-brandOrange">
+                            <i class="fa-solid fa-mobile-screen-button text-sm"></i> M-Pesa Prompt
+                        </button>
+                        <button onclick="togglePaymentTab('paystack')" id="tab-paystack" class="py-3 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-slate-500 hover:text-slate-800 transition-all">
+                            <i class="fa-solid fa-credit-card text-sm"></i> Paystack (Card/Bank)
+                        </button>
+                    </div>
+
+                    <div class="p-5">
+                        <div id="pay-mpesa" class="space-y-4">
+                            <div class="p-3 bg-slate-50 border border-slate-150 text-[11px] text-slate-600 leading-relaxed">
+                                <span class="font-bold text-brandPurple">M-Pesa STK Push Service:</span> Enter your active Safaricom number. On clicking initiate, an automated PIN entry prompt will instantly transmit directly onto your handset screen.
+                            </div>
+                            <div class="max-w-sm space-y-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">M-Pesa Recipient Number</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-xs font-bold text-slate-400">
+                                            +254
+                                        </div>
+                                        <input type="tel" id="mpesa-phone" placeholder="712345678" class="w-full pl-12 pr-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
+                                    </div>
+                                </div>
+                                <button onclick="triggerMpesaSTK()" class="w-full bg-[#1EA61E] hover:bg-[#158C15] text-white font-bold text-xs py-2.5 px-4 flex items-center justify-center gap-2 shadow-sm border border-[#147a14]">
+                                    <i class="fa-solid fa-paper-plane"></i> INITIATE STK PROMPT
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="pay-paystack" class="space-y-4 hidden">
+                            <div class="p-3 bg-slate-50 border border-slate-150 text-[11px] text-slate-600 leading-relaxed flex items-center justify-between gap-3">
+                                <span><span class="font-bold text-[#3AC5F0]">Paystack Engine:</span> Secure processing gateway supporting Visa, MasterCard, Verve, Apple Pay, and Direct Transfer options.</span>
+                                <div class="flex gap-1 shrink-0 text-slate-400 text-base">
+                                    <i class="fa-brands fa-cc-visa"></i>
+                                    <i class="fa-brands fa-cc-mastercard"></i>
+                                    <i class="fa-brands fa-cc-apple-pay"></i>
+                                </div>
+                            </div>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Debit/Credit Card Number</label>
+                                    <div class="relative">
+                                        <input type="text" placeholder="4000 1234 5678 9010" class="w-full pl-3 pr-10 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
+                                        <i class="fa-solid fa-shield-halved absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Expiration Date</label>
+                                        <input type="text" placeholder="MM/YY" class="w-full px-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Security Code (CVV)</label>
+                                        <input type="password" maxlength="4" placeholder="•••" class="w-full px-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
+                                    </div>
+                                </div>
+                                <button onclick="triggerPaystackPayment()" class="w-full bg-brandOrange hover:bg-brandOrangeDark text-white font-bold text-xs py-2.5 px-4 flex items-center justify-center gap-2 shadow-sm border border-brandOrangeDark">
+                                    <i class="fa-solid fa-lock text-[10px]"></i> AUTHORIZE PAYSTACK TRANSACTION
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="lg:col-span-5 space-y-4">
+                
+                <div class="bg-white border border-slate-200 shadow-sm">
+                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
+                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">Order Manifest</h3>
+                    </div>
+                    <div class="p-4 divide-y divide-slate-100" id="order-manifest-items">
+                        <div class="py-3 flex items-center gap-3 first:pt-0">
+                            <div class="h-16 w-11 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
+                                <img src="/static/books/fundo.jpeg" class="w-full h-full object-cover" onerror="this.src='https://i.ibb.co/CKRYPD4p/image.png'">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate" title="Fundo la Moyoni">Fundo la Moyoni</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Quantity: 1</p>
+                            </div>
+                            <p class="text-xs font-bold text-brandPurple">Ksh 500.00</p>
+                        </div>
+                        <div class="py-3 flex items-center gap-3">
+                            <div class="h-16 w-11 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
+                                <img src="/static/books/fragments.jpeg" class="w-full h-full object-cover" onerror="this.src='https://i.ibb.co/CKRYPD4p/image.png'">
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate" title="Fragments of Survival">Fragments of Survival</h4>
+                                <p class="text-[10px] text-slate-400 mt-0.5">Quantity: 1</p>
+                            </div>
+                            <p class="text-xs font-bold text-brandPurple">Ksh 650.00</p>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-slate-50 p-4 border-t border-slate-200 space-y-2 text-xs">
+                        <div class="flex justify-between text-slate-500">
+                            <span>Subtotal Items</span>
+                            <span class="font-semibold text-slate-700 font-mono">Ksh 1,150.00</span>
+                        </div>
+                        <div class="flex justify-between text-slate-500">
+                            <span>Courier Delivery Node</span>
+                            <span class="font-semibold text-slate-700 font-mono">Ksh 250.00</span>
+                        </div>
+                        <div class="flex justify-between border-t border-slate-200 pt-2 font-black text-slate-800 text-sm">
+                            <span class="uppercase tracking-wider">Net Amount Due</span>
+                            <span class="text-brandPurple font-mono">Ksh 1,400.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex gap-3">
+                    <i class="fa-solid fa-lock text-slate-400 text-base shrink-0 mt-0.5"></i>
+                    <div>
+                        <p class="font-bold text-slate-700">End-to-End Cryptographic Encryption</p>
+                        <p class="mt-0.5">All transactions processed on this terminal pass through military-grade SSL pipelines preventing packet sniffing or credentials theft.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </main>
+
+    <div id="stk-simulator-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-white border border-slate-300 max-w-sm w-full shadow-2xl overflow-hidden p-5 space-y-4">
+            <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
+                <div class="h-8 w-8 bg-[#1EA61E] text-white flex items-center justify-center text-sm">
+                    <i class="fa-solid fa-mobile-button"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-xs uppercase tracking-wider text-slate-800">M-Pesa Verification Engine</h3>
+                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wide">Waiting for response...</p>
+                </div>
+            </div>
+            <p class="text-[11px] text-slate-600 leading-relaxed">
+                An STK Push dialogue prompt has been sent to your device. Please enter your secret M-Pesa PIN on your phone to complete your payment of <strong class="text-brandPurple">Ksh 1,400.00</strong>.
+            </p>
+            <div class="flex items-center justify-center py-3">
+                <div class="animate-spin h-6 w-6 border-2 border-brandPurple border-t-transparent"></div>
+            </div>
+            <div class="flex justify-end pt-2">
+                <button onclick="dismissSTKSimulator(true)" class="bg-[#1EA61E] hover:bg-[#158C15] text-white font-bold text-xs py-1.5 px-3 border border-[#147a14]">
+                    SIMULATE PIN ENTRY / SUCCESS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="bg-white border-t border-slate-200 py-4 mt-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-400 font-mono uppercase">
+            <p>&copy; 2026 Tunu Publishers. Security Checked.</p>
+            <p>Direct Connection: paystack.co &bull; safaricom.co.ke</p>
+        </div>
+    </footer>
+
+    <script>
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('status-toast-container');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-brandPurple' : 'bg-red-700';
+            const icon = type === 'success' ? 'fa-square-check' : 'fa-triangle-exclamation';
+            
+            toast.className = `${bgColor} text-white px-3.5 py-2.5 shadow-md flex items-center justify-between gap-2.5 transition-all duration-200 text-xs font-bold border-l-4 border-white`;
+            toast.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid ${icon}"></i>
+                    <span>${message}</span>
+                </div>
+                <button class="text-white/80 hover:text-white focus:outline-none">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            `;
+            container.appendChild(toast);
+            const dismiss = () => {
+                toast.classList.add('opacity-0');
+                setTimeout(() => toast.remove(), 200);
+            };
+            toast.querySelector('button').addEventListener('click', dismiss);
+            setTimeout(dismiss, 4500);
+        }
+
+        function togglePaymentTab(paymentType) {
+            const mpesaBtn = document.getElementById('tab-mpesa');
+            const paystackBtn = document.getElementById('tab-paystack');
+            const mpesaDiv = document.getElementById('pay-mpesa');
+            const paystackDiv = document.getElementById('pay-paystack');
+
+            if (paymentType === 'mpesa') {
+                mpesaBtn.className = "py-3 text-center border-r border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-brandPurple border-b-2 border-brandOrange";
+                paystackBtn.className = "py-3 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-slate-500 hover:text-slate-800 transition-all";
+                mpesaDiv.classList.remove('hidden');
+                paystackDiv.classList.add('hidden');
+            } else {
+                paystackBtn.className = "py-3 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-brandPurple border-b-2 border-brandOrange";
+                mpesaBtn.className = "py-3 text-center border-r border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-slate-500 hover:text-slate-800 transition-all";
+                paystackDiv.classList.remove('hidden');
+                mpesaDiv.classList.add('hidden');
+            }
+        }
+
+        function triggerMpesaSTK() {
+            const phone = document.getElementById('mpesa-phone').value.trim();
+            const form = document.getElementById('delivery-form');
+            if (!form.reportValidity()) {
+                showToast("Please complete the delivery details first.", "error");
+                return;
+            }
+            if (!phone || phone.length < 9) {
+                showToast("Please enter a valid M-Pesa phone number.", "error");
+                return;
+            }
+            document.getElementById('stk-simulator-modal').classList.remove('hidden');
+        }
+
+        function dismissSTKSimulator(success = false) {
+            document.getElementById('stk-simulator-modal').classList.add('hidden');
+            if (success) {
+                showToast("M-Pesa transaction confirmed! Order created.");
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 2000);
+            }
+        }
+
+        function triggerPaystackPayment() {
+            const form = document.getElementById('delivery-form');
+            if (!form.reportValidity()) {
+                showToast("Please complete the delivery details first.", "error");
+                return;
+            }
+            showToast("Contacting Paystack gateway secure network...");
+            setTimeout(() => {
+                showToast("Payment processed successfully. Dispatching items!");
+                setTimeout(() => {
+                    window.location.href = "/";
+                }, 2500);
+            }, 2000);
+        }
+    </script>
+</body>
+</html>

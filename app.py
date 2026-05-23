@@ -248,9 +248,29 @@ def cache_static_books(response):
 def cart():
     return render_template('cart.html')
 
-@app.route('/base2')
-def base2():
-    return render_template('books.html')
+@app.route('/search')
+def search():
+    query_param = request.args.get('q', '')
+    if query_param:
+        books = Book.query.filter(
+            Book.is_deleted == False,
+            (Book.title.ilike(f'%{query_param}%')) | 
+            (Book.authors.ilike(f'%{query_param}%')) | 
+            (Book.grade.ilike(f'%{query_param}%'))
+        ).all()
+    else:
+        books = Book.query.filter_by(is_deleted=False).all()
+    
+    results = []
+    for b in books:
+        results.append({
+            'title': b.title,
+            'url': b.image,
+            'grade': b.grade,
+            'newPrice': b.newPrice
+        })
+    
+    return render_template('search.html', results=results, query=query_param)
 
 @app.route('/books')
 def books():
