@@ -134,7 +134,7 @@
             </div>
             {% endif %}
 
-            <form action="/staff/login" method="POST" id="loginForm">
+            <form action="{{ url_for('login', next=next)}}" method="POST" id="loginForm">
                 <div class="input-group">
                     <input type="tel" name="phone" class="input-field" placeholder="Phone Number (e.g., 07...)" required autofocus>
                     <i class="fas fa-mobile-screen-button"></i>

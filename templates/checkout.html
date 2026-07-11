@@ -1,349 +1,762 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tunu Publishers - Secure Checkout</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brandPurple: '#800080',
-                        brandPurpleDark: '#550055',
-                        brandOrange: '#FF4F01',
-                        brandOrangeDark: '#D43F00',
-                    },
-                    borderRadius: {
-                        'none': '0px',
-                        'sm': '2px',
-                        'md': '2px',
-                        'lg': '2px',
-                        'xl': '2px',
-                        '2xl': '2px',
-                        'full': '9999px'
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        * {
-            border-radius: 2px !important;
-        }
-        .no-round-override {
-            border-radius: 9999px !important;
-        }
-    </style>
-</head>
-<body class="bg-[#F8FAFC] font-sans text-[#1E293B] min-h-screen flex flex-col justify-between antialiased">
+{% extends "base.html" %}
 
-    <div id="status-toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-md w-full"></div>
+{% block title %}
+Secure Checkout | TUNU Publishers
+{% endblock %}
 
-    <header class="bg-brandPurple text-white shadow-sm border-b border-brandPurpleDark/20 sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-14">
-                <a href="/" class="flex items-center gap-2">
-                    <span class="bg-white text-brandPurple font-black px-2.5 py-0.5 text-base tracking-wider">TUNU</span>
-                    <span class="font-bold text-xs tracking-widest text-purple-100 hidden sm:inline-block">SECURE GATEWAY</span>
-                </a>
-                <div class="flex items-center gap-4">
-                    <a href="/books" class="text-xs text-purple-200 hover:text-white transition-colors font-semibold flex items-center gap-1">
-                        <i class="fa-solid fa-arrow-left text-[10px]"></i> Keep Shopping
-                    </a>
-                </div>
-            </div>
-        </div>
-    </header>
+{% block content %}
+<style>
+    :root {
+        --brand-purple: var(--magenta);
+        --brand-purple-dark: var(--dark-magenta);
+        --brand-orange: var(--orangered);
+        --brand-orange-dark: #D43F00;
+        --bg-slate: #FAF9FB;
+        --border-slate: #F1EDF5;
+        --text-slate-dark: #2D1A2D;
+        --text-slate-muted: #7E6E7E;
+    }
 
-    <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    .tunu-checkout-viewport {
+        background-color: var(--bg-slate);
+        min-height: 100vh;
+        padding: 40px 0;
+        font-family: 'Poppins', sans-serif;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-checkout-container {
+        max-width: 1140px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .tunu-grid-layout {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+        align-items: start;
+    }
+
+    @media (min-width: 1024px) {
+        .tunu-grid-layout {
+            grid-template-columns: 7fr 5fr;
+        }
+    }
+
+    .tunu-checkout-card {
+        background: #FFFFFF;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 28px;
+        box-shadow: 0 10px 30px rgba(139, 0, 139, 0.04);
+        margin-bottom: 24px;
+    }
+
+    .tunu-checkout-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .tunu-step-heading {
+        font-size: 14px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-step-number {
+        background: var(--brand-purple);
+        color: #FFFFFF;
+        width: 28px;
+        height: 28px;
+        border-radius: 50% !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .tunu-form-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+    }
+
+    @media (min-width: 640px) {
+        .tunu-form-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .tunu-form-full {
+            grid-column: span 2;
+        }
+    }
+
+    .tunu-input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .tunu-input-label {
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--text-slate-muted);
+        letter-spacing: 0.03em;
+    }
+
+    .tunu-field-input {
+        font-family: 'Poppins', sans-serif;
+        font-size: 13px;
+        padding: 12px 16px;
+        border: 1px solid var(--border-slate);
+        border-radius: 50px !important;
+        background-color: #FAF8FB;
+        color: var(--text-slate-dark);
+        outline: none;
+        transition: border-color 0.2s, background-color 0.2s;
+    }
+
+    .tunu-field-input:focus {
+        border-color: var(--brand-purple);
+        background-color: #FFFFFF;
+    }
+
+    textarea.tunu-field-input {
+        border-radius: 12px !important;
+    }
+
+    .tunu-payment-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+
+    .tunu-tab-selector {
+        background: #FAF8FB;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 16px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+    }
+
+    .tunu-tab-selector i {
+        font-size: 20px;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-tab-selector.active {
+        background: #FDF4FD;
+        border-color: var(--brand-purple);
+        color: var(--brand-purple);
+        box-shadow: 0 4px 12px rgba(139, 0, 139, 0.05);
+    }
+
+    .tunu-tab-selector.active i {
+        color: var(--brand-purple);
+    }
+
+    .tunu-tab-panel {
+        background: #FCFAFD;
+        border: 1px solid var(--border-slate);
+        border-radius: 12px !important;
+        padding: 24px;
+        display: none;
+    }
+
+    .tunu-tab-panel.active {
+        display: block;
+    }
+
+    .tunu-panel-text {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text-slate-muted);
+        margin-bottom: 20px;
+    }
+
+    .tunu-phone-prefix-wrap {
+        position: relative;
+        display: flex;
+        align-items: center;
+        width: 100%;
+    }
+
+    .tunu-phone-prefix {
+        position: absolute;
+        left: 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-field-input.phone-pl {
+        padding-left: 60px;
+        width: 100%;
+    }
+
+    .tunu-manifest-items {
+        max-height: 320px;
+        overflow-y: auto;
+        margin-bottom: 20px;
+    }
+
+    .tunu-manifest-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-slate);
+    }
+
+    .tunu-manifest-item:first-child {
+        padding-top: 0;
+    }
+
+    .tunu-manifest-item:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .tunu-manifest-img {
+        width: 52px;
+        height: 72px;
+        object-fit: contain;
+        background: #FAF6FA;
+        border: 1px solid var(--border-slate);
+        border-radius: 8px !important;
+    }
+
+    .tunu-manifest-details {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tunu-manifest-title {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-slate-dark);
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .tunu-manifest-qty {
+        font-size: 11px;
+        color: var(--text-slate-muted);
+        margin: 4px 0 0 0;
+    }
+
+    .tunu-manifest-price {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--brand-purple);
+    }
+
+    .tunu-summary-strip {
+        border-top: 1px dashed var(--border-slate);
+        padding-top: 20px;
+        margin-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .tunu-summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--text-slate-muted);
+    }
+
+    .tunu-summary-row.total {
+        border-top: 1px solid var(--border-slate);
+        padding-top: 16px;
+        margin-top: 4px;
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--text-slate-dark);
+    }
+
+    .tunu-summary-row.total .price {
+        color: var(--brand-orange);
+    }
+
+    .tunu-btn-submit {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        background-color: var(--brand-orange);
+        border: 1px solid var(--brand-orange-dark);
+        color: #FFFFFF;
+        font-size: 14px;
+        font-weight: 700;
+        padding: 16px;
+        border-radius: 50px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(255, 69, 0, 0.2);
+        transition: transform 0.2s, background-color 0.2s, box-shadow 0.2s;
+        margin-top: 24px;
+    }
+
+    .tunu-btn-submit:hover {
+        transform: translateY(-2px);
+        background-color: var(--brand-orange-dark);
+        box-shadow: 0 8px 24px rgba(255, 69, 0, 0.3);
+    }
+
+    .tunu-checkout-empty {
+        text-align: center;
+        padding: 60px 20px;
+    }
+
+    .tunu-checkout-empty i {
+        font-size: 48px;
+        color: var(--text-slate-muted);
+        opacity: 0.4;
+        margin-bottom: 20px;
+    }
+
+    .tunu-checkout-empty p {
+        font-size: 15px;
+        color: var(--text-slate-muted);
+        margin-bottom: 24px;
+    }
+
+    .tunu-return-link {
+        display: inline-block;
+        background: var(--brand-purple);
+        color: #FFFFFF;
+        padding: 12px 32px;
+        border-radius: 50px !important;
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        text-decoration: none;
+        box-shadow: 0 6px 16px rgba(139, 0, 139, 0.15);
+        transition: transform 0.2s;
+    }
+
+    .tunu-return-link:hover {
+        transform: translateY(-2px);
+    }
+
+    .tunu-stk-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(45, 26, 45, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 50000;
+        padding: 20px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+
+    .tunu-stk-modal.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .tunu-stk-card {
+        background: #FFFFFF;
+        border-radius: 12px !important;
+        width: 100%;
+        max-width: 380px;
+        padding: 32px 24px;
+        box-shadow: 0 20px 50px rgba(45, 26, 45, 0.15);
+        text-align: center;
+    }
+
+    .tunu-stk-icon-box {
+        width: 56px;
+        height: 56px;
+        background: #FDF4FD;
+        color: var(--brand-purple);
+        font-size: 24px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50% !important;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 12px rgba(139, 0, 139, 0.08);
+    }
+
+    .tunu-stk-title {
+        font-size: 16px;
+        font-weight: 800;
+        margin: 0 0 10px 0;
+    }
+
+    .tunu-stk-desc {
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--text-slate-muted);
+        margin: 0 0 24px 0;
+    }
+
+    .tunu-spinner {
+        width: 28px;
+        height: 28px;
+        border: 3px solid var(--border-slate);
+        border-top-color: var(--brand-purple);
+        border-radius: 50% !important;
+        animation: spin 0.8s linear infinite;
+        margin: 0 auto 24px auto;
+    }
+
+    .tunu-btn-sim {
+        background-color: var(--brand-purple);
+        color: #FFFFFF;
+        border: none;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 12px 24px;
+        border-radius: 50px !important;
+        cursor: pointer;
+        text-transform: uppercase;
+        box-shadow: 0 4px 12px rgba(139, 0, 139, 0.15);
+        transition: transform 0.2s;
+    }
+
+    .tunu-btn-sim:hover {
+        transform: translateY(-2px);
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<div class="tunu-checkout-viewport">
+    <div class="tunu-checkout-container" id="checkout-root">
+
+        <div class="tunu-grid-layout" id="checkout-content">
             
-            <div class="lg:col-span-7 space-y-4">
+            <div class="tunu-left-column">
                 
-                <div class="bg-white border border-slate-200 shadow-sm p-5">
-                    <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-4 flex items-center gap-2">
-                        <span class="bg-brandPurple text-white h-5 w-5 flex items-center justify-center font-bold text-[10px]">1</span>
-                        Customer & Delivery Information
+                <div class="tunu-checkout-card">
+                    <h2 class="tunu-step-heading">
+                        <span class="tunu-step-number">1</span>
+                        Delivery Destination & Address
                     </h2>
-                    <form id="delivery-form" class="space-y-3">
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Full Name</label>
-                                <input type="text" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Email Node</label>
-                                <input type="email" required class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                            </div>
+                    <form id="tunu-address-form" class="tunu-form-grid">
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">Recipient Full Name</label>
+                            <input type="text" id="chk-name" required class="tunu-field-input">
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
-                                <input type="tel" required placeholder="e.g. 07XXXXXXXX" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Delivery City / Town</label>
-                                <input type="text" required placeholder="e.g. Nairobi, Kisumu" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50">
-                            </div>
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">Email Node</label>
+                            <input type="email" id="chk-email" required class="tunu-field-input">
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Detailed Physical Address / Instructions</label>
-                            <textarea rows="2" required placeholder="Building, Street, Apartment Number, Office details" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50"></textarea>
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">Contact Phone Number</label>
+                            <input type="tel" id="chk-phone" required placeholder="07XXXXXXXX" class="tunu-field-input">
+                        </div>
+                        <div class="tunu-input-group">
+                            <label class="tunu-input-label">City / Major Town</label>
+                            <input type="text" id="chk-city" required placeholder="e.g. Nairobi, Eldoret" class="tunu-field-input">
+                        </div>
+                        <div class="tunu-input-group tunu-form-full">
+                            <label class="tunu-input-label">Detailed physical delivery address</label>
+                            <textarea id="chk-address" rows="2" required placeholder="Street name, building, apartment/house number or office instructions" class="tunu-field-input" style="resize: none;"></textarea>
                         </div>
                     </form>
                 </div>
 
-                <div class="bg-white border border-slate-200 shadow-sm">
-                    <div class="px-5 py-4 border-b border-slate-200 bg-slate-50">
-                        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
-                            <span class="bg-brandPurple text-white h-5 w-5 flex items-center justify-center font-bold text-[10px]">2</span>
-                            Select Payment Methodology
-                        </h2>
-                    </div>
-
-                    <div class="grid grid-cols-2 border-b border-slate-200">
-                        <button onclick="togglePaymentTab('mpesa')" id="tab-mpesa" class="py-3 text-center border-r border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-brandPurple border-b-2 border-brandOrange">
-                            <i class="fa-solid fa-mobile-screen-button text-sm"></i> M-Pesa Prompt
-                        </button>
-                        <button onclick="togglePaymentTab('paystack')" id="tab-paystack" class="py-3 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-slate-500 hover:text-slate-800 transition-all">
-                            <i class="fa-solid fa-credit-card text-sm"></i> Paystack (Card/Bank)
-                        </button>
-                    </div>
-
-                    <div class="p-5">
-                        <div id="pay-mpesa" class="space-y-4">
-                            <div class="p-3 bg-slate-50 border border-slate-150 text-[11px] text-slate-600 leading-relaxed">
-                                <span class="font-bold text-brandPurple">M-Pesa STK Push Service:</span> Enter your active Safaricom number. On clicking initiate, an automated PIN entry prompt will instantly transmit directly onto your handset screen.
-                            </div>
-                            <div class="max-w-sm space-y-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">M-Pesa Recipient Number</label>
-                                    <div class="relative">
-                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-xs font-bold text-slate-400">
-                                            +254
-                                        </div>
-                                        <input type="tel" id="mpesa-phone" placeholder="712345678" class="w-full pl-12 pr-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
-                                    </div>
-                                </div>
-                                <button onclick="triggerMpesaSTK()" class="w-full bg-[#1EA61E] hover:bg-[#158C15] text-white font-bold text-xs py-2.5 px-4 flex items-center justify-center gap-2 shadow-sm border border-[#147a14]">
-                                    <i class="fa-solid fa-paper-plane"></i> INITIATE STK PROMPT
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="pay-paystack" class="space-y-4 hidden">
-                            <div class="p-3 bg-slate-50 border border-slate-150 text-[11px] text-slate-600 leading-relaxed flex items-center justify-between gap-3">
-                                <span><span class="font-bold text-[#3AC5F0]">Paystack Engine:</span> Secure processing gateway supporting Visa, MasterCard, Verve, Apple Pay, and Direct Transfer options.</span>
-                                <div class="flex gap-1 shrink-0 text-slate-400 text-base">
-                                    <i class="fa-brands fa-cc-visa"></i>
-                                    <i class="fa-brands fa-cc-mastercard"></i>
-                                    <i class="fa-brands fa-cc-apple-pay"></i>
-                                </div>
-                            </div>
-                            <div class="space-y-3">
-                                <div>
-                                    <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Debit/Credit Card Number</label>
-                                    <div class="relative">
-                                        <input type="text" placeholder="4000 1234 5678 9010" class="w-full pl-3 pr-10 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
-                                        <i class="fa-solid fa-shield-halved absolute right-3 top-1/2 -translate-y-1/2 text-slate-300 text-xs"></i>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-2 gap-3">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Expiration Date</label>
-                                        <input type="text" placeholder="MM/YY" class="w-full px-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Security Code (CVV)</label>
-                                        <input type="password" maxlength="4" placeholder="•••" class="w-full px-3 py-2 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50 font-mono">
-                                    </div>
-                                </div>
-                                <button onclick="triggerPaystackPayment()" class="w-full bg-brandOrange hover:bg-brandOrangeDark text-white font-bold text-xs py-2.5 px-4 flex items-center justify-center gap-2 shadow-sm border border-brandOrangeDark">
-                                    <i class="fa-solid fa-lock text-[10px]"></i> AUTHORIZE PAYSTACK TRANSACTION
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <div class="lg:col-span-5 space-y-4">
-                
-                <div class="bg-white border border-slate-200 shadow-sm">
-                    <div class="px-4 py-3 bg-slate-50 border-b border-slate-200">
-                        <h3 class="font-bold text-xs uppercase tracking-wider text-slate-700">Order Manifest</h3>
-                    </div>
-                    <div class="p-4 divide-y divide-slate-100" id="order-manifest-items">
-                        <div class="py-3 flex items-center gap-3 first:pt-0">
-                            <div class="h-16 w-11 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
-                                <img src="/static/books/fundo.jpeg" class="w-full h-full object-cover" onerror="this.src='https://i.ibb.co/CKRYPD4p/image.png'">
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate" title="Fundo la Moyoni">Fundo la Moyoni</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Quantity: 1</p>
-                            </div>
-                            <p class="text-xs font-bold text-brandPurple">Ksh 500.00</p>
-                        </div>
-                        <div class="py-3 flex items-center gap-3">
-                            <div class="h-16 w-11 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
-                                <img src="/static/books/fragments.jpeg" class="w-full h-full object-cover" onerror="this.src='https://i.ibb.co/CKRYPD4p/image.png'">
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-xs font-bold text-slate-800 leading-snug truncate" title="Fragments of Survival">Fragments of Survival</h4>
-                                <p class="text-[10px] text-slate-400 mt-0.5">Quantity: 1</p>
-                            </div>
-                            <p class="text-xs font-bold text-brandPurple">Ksh 650.00</p>
-                        </div>
-                    </div>
+                <div class="tunu-checkout-card">
+                    <h2 class="tunu-step-heading">
+                        <span class="tunu-step-number">2</span>
+                        Payment Method Selector
+                    </h2>
                     
-                    <div class="bg-slate-50 p-4 border-t border-slate-200 space-y-2 text-xs">
-                        <div class="flex justify-between text-slate-500">
-                            <span>Subtotal Items</span>
-                            <span class="font-semibold text-slate-700 font-mono">Ksh 1,150.00</span>
+                    <div class="tunu-payment-tabs">
+                        <div onclick="switchPaymentMethod('mpesa')" id="pay-tab-mpesa" class="tunu-tab-selector active">
+                            <i class="fa-solid fa-mobile-screen"></i>
+                            <span>M-Pesa STK Prompt</span>
                         </div>
-                        <div class="flex justify-between text-slate-500">
-                            <span>Courier Delivery Node</span>
-                            <span class="font-semibold text-slate-700 font-mono">Ksh 250.00</span>
+                        <div onclick="switchPaymentMethod('paystack')" id="pay-tab-paystack" class="tunu-tab-selector">
+                            <i class="fa-solid fa-credit-card"></i>
+                            <span>Paystack Payment</span>
                         </div>
-                        <div class="flex justify-between border-t border-slate-200 pt-2 font-black text-slate-800 text-sm">
-                            <span class="uppercase tracking-wider">Net Amount Due</span>
-                            <span class="text-brandPurple font-mono">Ksh 1,400.00</span>
+                    </div>
+
+                    <div id="panel-mpesa" class="tunu-tab-panel active">
+                        <p class="tunu-panel-text">
+                            An automatic STK Push PIN entry dialogue request prompt will be transmitted instantly to the mobile device container configured down below.
+                        </p>
+                        <div class="tunu-input-group" style="max-width: 320px;">
+                            <label class="tunu-input-label">Safaricom Mobile Line</label>
+                            <div class="tunu-phone-prefix-wrap">
+                                <span class="tunu-phone-prefix">+254</span>
+                                <input type="tel" id="pay-mpesa-phone" placeholder="712345678" class="tunu-field-input phone-pl">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="panel-paystack" class="tunu-tab-panel">
+                        <p class="tunu-panel-text">
+                            Secure cryptographic integration infrastructure channel. Supports seamless authentication handling across global Credit/Debit Cards, Bank Accounts, and automated wallet pipelines.
+                        </p>
+                        <div class="tunu-form-grid" style="max-width: 440px;">
+                            <div class="tunu-input-group tunu-form-full">
+                                <label class="tunu-input-label">Card Number</label>
+                                <input type="text" placeholder="4000 1234 5678 9010" class="tunu-field-input">
+                            </div>
+                            <div class="tunu-input-group">
+                                <label class="tunu-input-label">Expiry Date</label>
+                                <input type="text" placeholder="MM/YY" class="tunu-field-input">
+                            </div>
+                            <div class="tunu-input-group">
+                                <label class="tunu-input-label">Card Verification Value (CVV)</label>
+                                <input type="password" placeholder="•••" maxlength="4" class="tunu-field-input">
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="p-4 bg-slate-50 border border-slate-200 text-[11px] text-slate-500 leading-relaxed flex gap-3">
-                    <i class="fa-solid fa-lock text-slate-400 text-base shrink-0 mt-0.5"></i>
-                    <div>
-                        <p class="font-bold text-slate-700">End-to-End Cryptographic Encryption</p>
-                        <p class="mt-0.5">All transactions processed on this terminal pass through military-grade SSL pipelines preventing packet sniffing or credentials theft.</p>
+            </div>
+
+            <div class="tunu-right-column">
+                <div class="tunu-checkout-card">
+                    <h2 class="tunu-step-heading" style="margin-bottom: 16px;">Order Summary Manifest</h2>
+                    
+                    <div class="tunu-manifest-items" id="manifest-items-list"></div>
+
+                    <div class="tunu-summary-strip">
+                        <div class="tunu-summary-row">
+                            <span>Cart Subtotal</span>
+                            <span id="summary-subtotal">KES 0</span>
+                        </div>
+                        <div class="tunu-summary-row">
+                            <span>Courier Freight Logistics</span>
+                            <span id="summary-shipping">KES 200</span>
+                        </div>
+                        <div class="tunu-summary-row total">
+                            <span>Net Total Payment</span>
+                            <span class="price" id="summary-total">KES 200</span>
+                        </div>
                     </div>
-                </div>
 
+                    <button onclick="processOrderDispatch()" class="tunu-btn-submit">
+                        <i class="fa-solid fa-lock-open"></i> Complete Secure Purchase
+                    </button>
+                </div>
             </div>
 
         </div>
-    </main>
 
-    <div id="stk-simulator-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 max-w-sm w-full shadow-2xl overflow-hidden p-5 space-y-4">
-            <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
-                <div class="h-8 w-8 bg-[#1EA61E] text-white flex items-center justify-center text-sm">
-                    <i class="fa-solid fa-mobile-button"></i>
-                </div>
-                <div>
-                    <h3 class="font-bold text-xs uppercase tracking-wider text-slate-800">M-Pesa Verification Engine</h3>
-                    <p class="text-[9px] text-slate-400 font-bold uppercase tracking-wide">Waiting for response...</p>
-                </div>
-            </div>
-            <p class="text-[11px] text-slate-600 leading-relaxed">
-                An STK Push dialogue prompt has been sent to your device. Please enter your secret M-Pesa PIN on your phone to complete your payment of <strong class="text-brandPurple">Ksh 1,400.00</strong>.
-            </p>
-            <div class="flex items-center justify-center py-3">
-                <div class="animate-spin h-6 w-6 border-2 border-brandPurple border-t-transparent"></div>
-            </div>
-            <div class="flex justify-end pt-2">
-                <button onclick="dismissSTKSimulator(true)" class="bg-[#1EA61E] hover:bg-[#158C15] text-white font-bold text-xs py-1.5 px-3 border border-[#147a14]">
-                    SIMULATE PIN ENTRY / SUCCESS
-                </button>
-            </div>
-        </div>
     </div>
+</div>
 
-    <footer class="bg-white border-t border-slate-200 py-4 mt-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-[10px] text-slate-400 font-mono uppercase">
-            <p>&copy; 2026 Tunu Publishers. Security Checked.</p>
-            <p>Direct Connection: paystack.co &bull; safaricom.co.ke</p>
+<div class="tunu-stk-modal" id="stk-prompt-modal">
+    <div class="tunu-stk-card">
+        <div class="tunu-stk-icon-box">
+            <i class="fa-solid fa-mobile-screen-button"></i>
         </div>
-    </footer>
+        <h4 class="tunu-stk-title">STK Push Dialogue Initialized</h4>
+        <p class="tunu-stk-desc">
+            A background checking payload verification prompt has been signaled. Please type your M-Pesa PIN inside the incoming phone screen modal to validate payment.
+        </p>
+        <div class="tunu-spinner"></div>
+        <button onclick="simulateSuccessfulSTK()" class="tunu-btn-sim">Simulate Success Callback</button>
+    </div>
+</div>
 
-    <script>
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('status-toast-container');
-            const toast = document.createElement('div');
-            const bgColor = type === 'success' ? 'bg-brandPurple' : 'bg-red-700';
-            const icon = type === 'success' ? 'fa-square-check' : 'fa-triangle-exclamation';
-            
-            toast.className = `${bgColor} text-white px-3.5 py-2.5 shadow-md flex items-center justify-between gap-2.5 transition-all duration-200 text-xs font-bold border-l-4 border-white`;
-            toast.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid ${icon}"></i>
-                    <span>${message}</span>
-                </div>
-                <button class="text-white/80 hover:text-white focus:outline-none">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
+<script>
+    let activePaymentType = 'mpesa';
+
+    function loadCheckoutManifest() {
+        const localItems = JSON.parse(localStorage.getItem('cart') || '[]');
+        const listContainer = document.getElementById('manifest-items-list');
+        const contentGrid = document.getElementById('checkout-content');
+        const viewRoot = document.getElementById('checkout-root');
+
+        if (!listContainer) return;
+
+        if (localItems.length === 0) {
+            contentGrid.style.display = 'none';
+            let emptyContainer = document.createElement('div');
+            emptyContainer.className = 'tunu-checkout-card tunu-checkout-empty';
+            emptyContainer.innerHTML = `
+                <i class="fa-solid fa-bag-shopping"></i>
+                <p>Your shopping bag manifest holds no books.</p>
+                <a href="/books" class="tunu-return-link">View Catalog Directory</a>
             `;
-            container.appendChild(toast);
-            const dismiss = () => {
-                toast.classList.add('opacity-0');
-                setTimeout(() => toast.remove(), 200);
-            };
-            toast.querySelector('button').addEventListener('click', dismiss);
-            setTimeout(dismiss, 4500);
+            viewRoot.appendChild(emptyContainer);
+            return;
         }
 
-        function togglePaymentTab(paymentType) {
-            const mpesaBtn = document.getElementById('tab-mpesa');
-            const paystackBtn = document.getElementById('tab-paystack');
-            const mpesaDiv = document.getElementById('pay-mpesa');
-            const paystackDiv = document.getElementById('pay-paystack');
+        listContainer.innerHTML = '';
+        let subtotal = 0;
 
-            if (paymentType === 'mpesa') {
-                mpesaBtn.className = "py-3 text-center border-r border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-brandPurple border-b-2 border-brandOrange";
-                paystackBtn.className = "py-3 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-slate-500 hover:text-slate-800 transition-all";
-                mpesaDiv.classList.remove('hidden');
-                paystackDiv.classList.add('hidden');
+        localItems.forEach(item => {
+            const rowTotal = parseFloat(item.newPrice || 0) * parseInt(item.quantity || 1);
+            subtotal += rowTotal;
+
+            const div = document.createElement('div');
+            div.className = 'tunu-manifest-item';
+            div.innerHTML = `
+                <img src="${item.image}" class="tunu-manifest-img" onerror="this.src='/static/icons/tunu_logo.png'">
+                <div class="tunu-manifest-details">
+                    <h4 class="tunu-manifest-title">${item.title}</h4>
+                    <p class="tunu-manifest-qty">Quantity Matrix: ${item.quantity}</p>
+                </div>
+                <div class="tunu-manifest-price">KES ${rowTotal.toLocaleString()}</div>
+            `;
+            listContainer.appendChild(div);
+        });
+
+        const shipping = 200;
+        const netTotal = subtotal + shipping;
+
+        document.getElementById('summary-subtotal').innerText = 'KES ' + subtotal.toLocaleString();
+        document.getElementById('summary-total').innerText = 'KES ' + netTotal.toLocaleString();
+    }
+
+    function switchPaymentMethod(method) {
+        activePaymentType = method;
+        const tabMpesa = document.getElementById('pay-tab-mpesa');
+        const tabPaystack = document.getElementById('pay-tab-paystack');
+        const panelMpesa = document.getElementById('panel-mpesa');
+        const panelPaystack = document.getElementById('panel-paystack');
+
+        if (method === 'mpesa') {
+            tabMpesa.classList.add('active');
+            tabPaystack.classList.remove('active');
+            panelMpesa.classList.add('active');
+            panelPaystack.classList.remove('active');
+        } else {
+            tabPaystack.classList.add('active');
+            tabMpesa.classList.remove('active');
+            panelPaystack.classList.add('active');
+            panelMpesa.classList.remove('active');
+        }
+    }
+
+    async function processOrderDispatch() {
+        const addressForm = document.getElementById('tunu-address-form');
+        if (!addressForm.reportValidity()) {
+            if (typeof showAlert === 'function') {
+                showAlert('error', 'Please complete the physical delivery details block.');
             } else {
-                paystackBtn.className = "py-3 text-center text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-brandPurple border-b-2 border-brandOrange";
-                mpesaBtn.className = "py-3 text-center border-r border-slate-200 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2 bg-slate-50 text-slate-500 hover:text-slate-800 transition-all";
-                paystackDiv.classList.remove('hidden');
-                mpesaDiv.classList.add('hidden');
+                alert('Please complete the physical delivery details block.');
             }
+            return;
         }
 
-        function triggerMpesaSTK() {
-            const phone = document.getElementById('mpesa-phone').value.trim();
-            const form = document.getElementById('delivery-form');
-            if (!form.reportValidity()) {
-                showToast("Please complete the delivery details first.", "error");
+        if (activePaymentType === 'mpesa') {
+            const mpesaInp = document.getElementById('pay-mpesa-phone').value.trim();
+            if (!mpesaInp) {
+                if (typeof showAlert === 'function') {
+                    showAlert('error', 'Please define your mobile billing line parameters.');
+                } else {
+                    alert('Please define your mobile billing line parameters.');
+                }
                 return;
             }
-            if (!phone || phone.length < 9) {
-                showToast("Please enter a valid M-Pesa phone number.", "error");
-                return;
-            }
-            document.getElementById('stk-simulator-modal').classList.remove('hidden');
+            document.getElementById('stk-prompt-modal').classList.add('open');
+        } else {
+            await submitCheckoutToServer();
+        }
+    }
+
+    async function simulateSuccessfulSTK() {
+        document.getElementById('stk-prompt-modal').classList.remove('open');
+        await submitCheckoutToServer();
+    }
+
+    async function submitCheckoutToServer() {
+        const localItems = JSON.parse(localStorage.getItem('cart') || '[]');
+
+        console.log(localItems)
+
+        const name = document.getElementById('chk-name').value;
+        const email = document.getElementById('chk-email').value;
+        const phone = document.getElementById('chk-phone').value;
+        const city = document.getElementById('chk-city').value;
+        const address = document.getElementById('chk-address').value;
+
+        const payload = {
+            name: name,
+            email: email,
+            phone: phone,
+            city: city,
+            address: address,
+            payment_method: activePaymentType,
+            cart: localItems
+        };
+
+        if (typeof showAlert === 'function') {
+            showAlert('info', 'Processing secure transaction on server nodes...');
         }
 
-        function dismissSTKSimulator(success = false) {
-            document.getElementById('stk-simulator-modal').classList.add('hidden');
-            if (success) {
-                showToast("M-Pesa transaction confirmed! Order created.");
+        try {
+            const response = await fetch('/api/checkout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                localStorage.removeItem('cart');
+                if (typeof updateCartUI === 'function') {
+                    updateCartUI();
+                }
+                if (typeof showAlert === 'function') {
+                    showAlert('success', 'Transaction verified! Package processing context logged.');
+                } else {
+                    alert('Transaction verified! Package processing context logged.');
+                }
                 setTimeout(() => {
-                    window.location.href = "/";
+                    window.location.href = '/';
                 }, 2000);
+            } else {
+                if (typeof showAlert === 'function') {
+                    showAlert('error', data.error || 'Server rejected checkout parameters.');
+                } else {
+                    alert(data.error || 'Server rejected checkout parameters.');
+                }
+            }
+        } catch (error) {
+            if (typeof showAlert === 'function') {
+                showAlert('error', 'Unable to reach payment verification gateways.');
+            } else {
+                alert('Unable to reach payment verification gateways.');
             }
         }
+    }
 
-        function triggerPaystackPayment() {
-            const form = document.getElementById('delivery-form');
-            if (!form.reportValidity()) {
-                showToast("Please complete the delivery details first.", "error");
-                return;
-            }
-            showToast("Contacting Paystack gateway secure network...");
-            setTimeout(() => {
-                showToast("Payment processed successfully. Dispatching items!");
-                setTimeout(() => {
-                    window.location.href = "/";
-                }, 2500);
-            }, 2000);
-        }
-    </script>
-</body>
-</html>
+    document.addEventListener('DOMContentLoaded', loadCheckoutManifest);
+</script>
+{% endblock %}

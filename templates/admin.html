@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tunu Publishers - Corporate Admin Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/static/assets/tailwind.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -50,6 +50,40 @@
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
             background: #94A3B8;
+        }
+        #add-author{
+            border: 1px solid magenta;
+            font-size: small;
+            padding: 3px 10px;
+            margin: 10px auto;
+            background: magenta;
+            color: white;
+            &:active{
+                scale: 0.9;
+            }
+
+        }
+        .author-pills{
+            display: flex;
+            justify-content: start;
+            gap: 4px;
+            align-items: flex-start;
+            padding: 5px;
+            flex-wrap: wrap;
+        }
+        .author-pill{
+            border: 1px solid beige;
+            padding: 3px 5px;
+            width: fit-content;
+            background: #80808057;
+            font-size: small;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            button{
+                font-size: 1.72em;
+                color: red;
+            }
         }
     </style>
 </head>
@@ -269,7 +303,7 @@
                     <div class="bg-white border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between book-card" data-title="{{ book.title | lower }}" data-authors="{{ book.authors | lower }}">
                         <div class="p-3 flex gap-3">
                             <div class="w-16 h-24 bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center overflow-hidden">
-                                <img src="{{ book.image }}" alt="{{ book.title }}" class="w-full h-full object-cover" onerror="this.src='https://i.ibb.co/CKRYPD4p/image.png'">
+                                <img src="{{ book.image }}" alt="{{ book.title }}" class="w-full h-full object-cover" onerror="this.src='/static/icons/tunu_logo.png'">
                             </div>
                             <div class="flex-1 min-w-0 flex flex-col justify-between">
                                 <div>
@@ -475,7 +509,7 @@
     </div>
 
     <div id="book-modal" class="fixed inset-0 bg-black/60 hidden z-50 flex items-center justify-center p-4">
-        <div class="bg-white border border-slate-300 w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="bg-white border border-slate-300 w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[97vh]">
             <div class="bg-brandPurple p-4 text-white flex items-center justify-between border-b border-brandPurpleDark">
                 <h3 id="book-modal-title" class="font-bold text-sm uppercase tracking-wider">Add New Book</h3>
                 <button onclick="closeBookModal()" class="text-white/80 hover:text-white">
@@ -492,7 +526,10 @@
                 
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Authors</label>
-                    <input type="text" id="book-form-authors" class="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" placeholder="e.g. Dr. John Doe, Prof. Jane Smith">
+                    <button id="add-author" type="button" onclick="newAuthor()"> <i class="fas fa-plus"></i> Add Author</button>
+                    <div class="authors-div">                   
+                </div>
+                <div class="author-pills"></div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -717,24 +754,65 @@
             });
         }
 
+        function newAuthor(){
+            const div = document.querySelector('.authors-div')
+            const inp = document.createElement('input')
+            div.appendChild(inp)
+            inp.id="book-form-authors"
+            inp.setAttribute('timestamp', new Date().getMilliseconds())
+            inp.className="w-full px-3 py-1.5 border border-slate-200 text-xs focus:outline-none focus:border-brandPurple bg-slate-50" 
+            inp.placeholder="e.g. Dr. John Doe"
+            inp.focus()
+            inp.addEventListener('blur', (e)=>{
+                const val = inp.value
+                if(String(val).length > 2 ){
+                create_author(val)
+                } else{
+                    showToast('Failed to add author')
+                }
+                inp.remove()
+            })
+        }
+
+        function create_author(val){
+            const div = document.createElement('div')
+            div.className = 'author-pill'
+            div.innerHTML = `
+              <div class="text"> ${val}</div> <button id="delete_author"> &times; </button>            
+            `
+            const parent  = document.querySelector('.author-pills')
+            parent.appendChild(div)
+            div.querySelector('button').addEventListener('click', ()=>{
+                div.remove()
+            })
+        }
+
         const bookModal = document.getElementById('book-modal');
         function openBookModal(bookData = null) {
             const titleEl = document.getElementById('book-modal-title');
             const form = document.getElementById('book-form');
             form.reset();
+            const aDiv = form.querySelector('.authors-div')
 
             if (bookData) {
                 titleEl.textContent = "Edit Book Details";
                 document.getElementById('book-id').value = bookData.id || '';
                 document.getElementById('book-form-title').value = bookData.title || '';
-                document.getElementById('book-form-authors').value = bookData.authors || '';
+                const authors = bookData.authors?.split(',')
+                const authorsDict = JSON.stringify(authors)
+                console.log(authorsDict)
+                JSON.parse(authorsDict).forEach((a)=>{
+                    create_author(a) 
+                }) 
                 document.getElementById('book-form-grade').value = bookData.grade || '';
                 document.getElementById('book-form-audience').value = bookData.audience || '';
                 document.getElementById('book-form-newPrice').value = bookData.newPrice || '';
                 document.getElementById('book-form-oldPrice').value = bookData.oldPrice || '';
                 document.getElementById('book-form-image').value = bookData.image || '';
+                
             } else {
                 titleEl.textContent = "Add New Volume";
+                aDiv.innerHTML = ''
                 document.getElementById('book-id').value = '';
             }
             bookModal.classList.remove('hidden');
@@ -742,19 +820,25 @@
 
         function closeBookModal() {
             bookModal.classList.add('hidden');
+            document.querySelector('.author-pills').innerHTML = ''
         }
 
         document.getElementById('book-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = document.getElementById('book-id').value;
             const fileInput = document.getElementById('book-form-image-file');
+            const pills = document.querySelectorAll('.author-pill .text')
+            let authors = []
+            pills.forEach(p=>{ 
+                authors.push(p.textContent.trim().replace('&times;', ''))
+            })
 
             if (id) {
                 const payload = {
                     data: {
                         id: id,
                         title: document.getElementById('book-form-title').value,
-                        authors: document.getElementById('book-form-authors').value,
+                        authors:authors,
                         grade: document.getElementById('book-form-grade').value,
                         audience: document.getElementById('book-form-audience').value,
                         newPrice: parseFloat(document.getElementById('book-form-newPrice').value),
@@ -766,7 +850,12 @@
             } else {
                 const formData = new FormData();
                 formData.append('title', document.getElementById('book-form-title').value);
-                formData.append('authors', document.getElementById('book-form-authors').value);
+                const pills = document.querySelectorAll('.author-pill .text')
+                let authors = []
+                pills.forEach(p=>{ 
+                    authors.push(p.textContent.trim().replace('&times;', ''))
+                })
+                formData.append('authors', authors);
                 formData.append('grade', document.getElementById('book-form-grade').value);
                 formData.append('audience', document.getElementById('book-form-audience').value);
                 formData.append('newPrice', document.getElementById('book-form-newPrice').value);

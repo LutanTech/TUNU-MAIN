@@ -1,0 +1,25 @@
+[33ma33ca2d[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m Remove hardcoded secret
+[33m1b6816b[m Enhance order processing and phone formatting; update order ID length and improve error handling in create_order function. Modify contact email display in index.html and add CSS for checkout button interaction.
+[33mab47018[m pymysql add
+[33m08662b9[m[33m ([m[1;31morigin/main[m[33m)[m db update
+[33m709b549[m db pdate pre commit in cpanel
+[33m541137e[m search update
+[33m261b6e3[m meta google
+[33m8713a3f[m ignore update
+[33m740f68d[m cart update
+[33mc2fb99b[m books update
+[33m327319c[m cp update
+[33m5db983a[m ssl off
+[33m8e27a4e[m sqlite update
+[33m504546d[m 404 update
+[33m397be9f[m ssl activate
+[33mbd50ba7[m postgres  update
+[33m649b8ce[m 500 add
+[33m0e6e99c[m uri update
+[33m49c6b13[m password update
+[33me15d1a8[m entry point update
+[33m79a5191[m psycorg add
+[33mfa04fc1[m os env update
+[33mc28fcc2[m v2
+[33m4d4ada0[m cpanel update
+[33mb69f6bb[m initial commit

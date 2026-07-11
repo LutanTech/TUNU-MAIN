@@ -33,6 +33,11 @@
         border-bottom: 1px solid #f0f0f0;
         position: relative;
     }
+    #proceedToCheckout{
+        &:active{
+            scale: 0.9;
+        }
+    }
     .item-row:last-child { border-bottom: none; }
     .item-img {
         width: 80px;
@@ -168,7 +173,7 @@
                     <span style="font-weight:900; font-size:22px; color:var(--magenta);">KES ${subtotal.toLocaleString()}</span>
                 </div>
 
-                <button onclick="proceedToCheckout()" style="width:100%; background:var(--orangered); color:white; border:none; padding:18px; border-radius:12px; font-weight:800; cursor:pointer; font-size:16px; margin-top:20px; box-shadow: 0 5px 15px rgba(255,69,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;">
+                <button onclick="proceedToCheckout()" style="width:100%; background:var(--orangered); color:white; border:none; padding:18px; border-radius:12px; font-weight:800; cursor:pointer; font-size:16px; margin-top:20px; box-shadow: 0 5px 15px rgba(255,69,0,0.3); display:flex; align-items:center; justify-content:center; gap:10px;" id="proceedToCheckout">
                     <i class="fas fa-lock"></i> SECURE CHECKOUT
                 </button>
 
@@ -222,9 +227,30 @@
     }
 
     function proceedToCheckout() {
-        location.href = '#checkout=next'; 
-        console.log("Processing order...", cart);
-        alert('Functionality yet to be implemented')
+        const uid = localStorage.getItem('temp_id') || crypto.randomUUID(4)
+        let ids = []
+        cart.forEach(i=>{
+            ids.push(i.id)
+        })
+
+        fetch('/create_order', {
+            method:'POST',
+            headers:{
+                'Content-Type':'application/json'
+            }, body: JSON.stringify({'cart':ids, 'temp_id':uid})
+        })
+        .then(r=>r.json())
+        .then(data=>{
+            if(data.msg && data.order_id){
+                localStorage.setItem('temp_id', uid)
+               window.location.href = `/checkout?order=${data.order_id}`
+            } else{
+                showAlert('error', data.error)
+            }
+        })
+        .catch(e=>{
+            showAlert('error', e.message)
+        })
     }
 
     window.addEventListener('load', renderCartPage);

@@ -1,7 +1,10 @@
+import base64
 from datetime import datetime, timedelta
 from functools import wraps
 import hashlib
 import hmac
+import json
+import json
 import json
 import os
 import re
@@ -11,9 +14,12 @@ import string
 from dotenv import load_dotenv
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 from flask import abort
+from flask import jsonify, render_template, request
 from flask_mail import Mail
+from flask_mail import Message
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+import requests
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 app = Flask(__name__)
@@ -22,17 +28,26 @@ app = Flask(__name__)
 load_dotenv()
 
 app.config['SECRET_KEY'] = 'THIS_IS_SO_SECRET_FOR_2026_TUNU'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tunu.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DB_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 60 * 60 * 24 * 30
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 465
 app.config['MAIL_USE_SSL'] = True
 app.config['MAIL_USERNAME'] = 'info.tunupublishers@gmail.com'
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+app.config['MAIL_PASSWORD'] = os.getenv('M_P')
 app.config['MAIL_DEFAULT_SENDER'] = ('Tunu Publishers','info.tunupublishers@gmail.com')
 UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'books')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
+#MPESA
+CONSUMER_KEY = os.getenv("MPESA_CONSUMER_KEY")
+CONSUMER_SECRET = os.getenv("MPESA_CONSUMER_SECRET")
+SHORTCODE = os.getenv("MPESA_SHORTCODE")
+PASSKEY = os.getenv("MPESA_PASSKEY")
+MPESA_ENV = os.getenv("MPESA_ENV", "sandbox")
+
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
@@ -50,6 +65,24 @@ migrate = Migrate(app, db)
 def generate_id(prefix='STF', length=6):
     chars = string.ascii_uppercase + string.digits
     return prefix + '-' + ''.join(secrets.choice(chars) for _ in range(length))
+
+
+def format_phone(number: str) -> str:
+    if not number:
+        return None
+
+    num = re.sub(r"[^\d]", "", str(number))
+
+    if num.startswith("0") and len(num) == 10:
+        return "254" + num[1:]
+
+    if (num.startswith("7") or num.startswith("1")) and len(num) == 9:
+        return "254" + num
+
+    if num.startswith("254") and len(num) >= 12:
+        return num
+
+    return num
 
 def generate_hmac_token(data):
     payload = json.dumps(data, sort_keys=True)
@@ -77,8 +110,9 @@ def log_action(action, status_code=200, staff_id=None):
 def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
+       
         if not session.get('staff_id'):
-            return redirect(url_for('login'))
+            return redirect(url_for('login', next=request.path))
         return f(*args, **kwargs)
     return wrapper
 
@@ -99,11 +133,11 @@ class Staff(db.Model):
     email = db.Column(db.String(128), unique=True)
     phone = db.Column(db.String(20), unique=True, nullable=False)
     location = db.Column(db.String(128), default='Nairobi')
-    password = db.Column(db.String(), nullable=False)
+    password = db.Column(db.String(1024), nullable=False)
     added_at = db.Column(db.DateTime, default=lambda: datetime.utcnow()+timedelta(hours=3))
     edited_at = db.Column(db.DateTime, default=lambda: datetime.utcnow()+timedelta(hours=3))
-    edited_by = db.Column(db.String(), db.ForeignKey('staff.id'))
-    deactivated_by = db.Column(db.String(), db.ForeignKey('staff.id'))
+    edited_by = db.Column(db.String(255), db.ForeignKey('staff.id'))
+    deactivated_by = db.Column(db.String(255), db.ForeignKey('staff.id'))
     deactivated_at = db.Column(db.DateTime)
     is_admin = db.Column(db.Boolean, default=False)
     is_active = db.Column(db.Boolean, default=True)
@@ -123,7 +157,7 @@ class Staff(db.Model):
 class Book(db.Model):
     id = db.Column(db.String(20), primary_key=True, default=lambda: generate_id('BK'))
     title = db.Column(db.String(512), nullable=False)
-    image = db.Column(db.String(), default='https://i.ibb.co/CKRYPD4p/image.png')
+    image = db.Column(db.String(1024), default='https://i.ibb.co/CKRYPD4p/image.png')
     grade = db.Column(db.String(100))
     slug = db.Column(db.String(100))
     audience = db.Column(db.String(100))
@@ -209,11 +243,41 @@ class Log(db.Model):
             'time': self.timestamp
         }
 
+
+class Order(db.Model):
+    id = db.Column(db.String(50), default=lambda: generate_id('ORD',length=10), primary_key=True)
+    temp_id = db.Column(db.String(512))
+    data = db.Column(db.JSON)
+    name = db.Column(db.String(255), nullable=True)
+    city = db.Column(db.String(512), nullable=True)
+    address = db.Column(db.String(1024), nullable=True)
+    email = db.Column(db.String(255), nullable=True)
+    phone = db.Column(db.String(14), nullable=True)
+
+    created_at = db.Column(
+        db.DateTime,
+        default=lambda: datetime.utcnow() + timedelta(hours=3)
+    )
+    
+    def to_dict(self):
+        return {
+            'id':self.id,
+            'name':self.name,
+            'city':self.city,
+            'phone':self.phone,
+            'email':self.email,
+            'created':self.created_at,
+            'address':self.address,
+            'data':self.data
+        }
+    
+    
 BOOKS_DATA = [
     {'title':'Fundo la Moyoni','newPrice':500,'oldPrice':550,'url':'/static/books/fundo.jpeg','audience':'General','grade':'Adult','authors':'Tunu'},
     {'title':'Fragments of Survival','newPrice':650,'oldPrice':0,'url':'/static/books/fragments.jpeg','audience':'General','grade':'Adult','authors':'Tunu'},
     {'title':'CBC English Grade 6','newPrice':700,'oldPrice':850,'url':'/static/books/dawa_ya_moyoni.jpeg','audience':'Students','grade':'Grade 6','authors':'Tunu'}
 ]
+   
 
 @app.route('/')
 def home():
@@ -291,8 +355,10 @@ def books():
 @app.route('/staff/login', methods=['GET','POST'])
 def login():
     if request.method=='GET':
-        return render_template('login.html')
+        return render_template('login.html', next=request.args.get('next'))
     
+    next_url = request.args.get('next')
+
     
     user = Staff.query.filter_by(phone=request.form.get('phone')).first()
     if not user:
@@ -309,6 +375,9 @@ def login():
     
     if not user.is_super_admin:      
         log_action(f'{user.name } logged in', 200, user.id)
+        
+    if next_url :
+        return redirect(next_url)
     
     return redirect(url_for('dashboard'))
 
@@ -476,8 +545,6 @@ def admin_dashboard():
         start_time=datetime.utcnow()
     )
 
-
-    
 @app.route('/api/admin/edit/staff', methods=['POST']) 
 @login_required
 @admin_required
@@ -604,7 +671,230 @@ def add_book():
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': f'Database operation error occurred: {str(e)}'}), 500
+
+
+
+@app.route('/create_order', methods=['POST'])
+def create_order():
+    data = request.get_json()
+
+    print(data)
+
+    cart = data.get('cart', [])
+    temp_id = data.get('temp_id')
+
+    new_order = Order(
+        data=json.dumps(cart),
+        temp_id=temp_id
+    )
+
+    try:
+        db.session.add(new_order)
+        db.session.commit()
+
+        return jsonify({
+            'msg': 'Order created successfully',
+            'order_id': new_order.id
+        }), 200
+
+    except Exception as e:
+        db.session.rollback()
+
+        return jsonify({
+            'error': f'Database error : {str(e)}'
+        }), 500
     
+
+
+@app.route('/checkout', methods=['GET'])
+def checkout():
+    id = request.args.get('order')
+    order = Order.query.filter_by(id=id).first()
+
+    if not order:
+        return redirect(url_for('cart'))
+
+    item_ids = (order.data)
+
+    item_ids = json.loads(item_ids)
+    books = Book.query.filter(Book.id.in_(item_ids)).all()
+
+    return render_template(
+        'checkout.html',
+        books=books,
+        order=order
+    )
+
+@app.route('/api/checkout', methods=['POST'])
+def process_checkout_data():
+    try:
+        payload = request.get_json()
+        if not payload:
+            return jsonify({'error': 'Payload empty or invalid formatting'}), 400
+
+        name = payload.get('name')
+        email = payload.get('email')
+        phone = payload.get('phone')
+        city = payload.get('city')
+        address = payload.get('address')
+        payment_method = payload.get('payment_method')
+        cart_items = payload.get('cart', [])
+                    
+
+        if not all([name, email, phone, city, address, payment_method]):
+            return jsonify({'error': 'Missing required destination or payment parameters'}), 400
+
+        if not cart_items:
+            return jsonify({'error': 'Order manifest cannot be processed with an empty cart'}), 400
+
+        subtotal = 0
+        items_summary_html = ""
+        for item in cart_items:
+            item_title = item.get('title', 'Unknown Book')
+            item_qty = int(item.get('quantity', 1))
+            item_price = float(item.get('newPrice', 0))
+            item_total = item_price * item_qty
+            subtotal += item_total
+            items_summary_html += f"<li><strong>{item_title}</strong> (x{item_qty}) - KES {item_total:,.2f}</li>"
+
+        shipping_fee = 200.0
+        grand_total = subtotal + shipping_fee
+        
+        pay(format_phone(phone), grand_total)
+        
+                
+        try:
+            msg = Message(
+                subject=f"New Secure TEST Order Dispatch - {name}",
+                recipients=[email, 'lutancorpinfoteam@gmail.com'],
+                html=f"""
+                <h3>Tunu Publishers Order Manifest</h3>
+                <p><strong>Customer:</strong> {name}</p>
+                <p><strong>Email:</strong> {email}</p>
+                <p><strong>Phone Contact:</strong> {phone}</p>
+                <p><strong>Delivery Location:</strong> {city}</p>
+                <p><strong>Physical Address:</strong> {address}</p>
+                <p><strong>Payment Selector:</strong> {payment_method.upper()}</p>
+                <hr/>
+                <h4>Ordered Books:</h4>
+                <ul>{items_summary_html}</ul>
+                <hr/>
+                <p><strong>Subtotal:</strong> KES {subtotal:,.2f}</p>
+                <p><strong>Delivery Freight:</strong> KES {shipping_fee:,.2f}</p>
+                <p><strong>Net Amount Processed:</strong> KES {grand_total:,.2f}</p>
+                """
+            )
+            mail.send(msg)
+        except Exception:
+            pass
+        
+        pay(phone, grand_total)
+
+        try:
+            customer_msg = Message(
+                subject="Your Tunu Publishers Order Confirmation",
+                recipients=[email],
+                html=f"""
+                <h3>Thank you for your order, {name}!</h3>
+                <p>We have successfully received your payment via {payment_method.upper()} and logged your delivery requirements.</p>
+                <h4>Order Summary:</h4>
+                <ul>{items_summary_html}</ul>
+                <p><strong>Shipping Logistics Fee:</strong> KES {shipping_fee:,.2f}</p>
+                <p><strong>Total Paid Amount:</strong> KES {grand_total:,.2f}</p>
+                <p>Our delivery nodes will contact you shortly to coordinate physical package dispatch.</p>
+                """
+            )
+            mail.send(customer_msg)
+        except Exception:
+            pass
+
+        return jsonify({
+            'msg': 'Order validation completed successfully',
+            'net_processed': grand_total
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': f'System runtime error occurred: {str(e)}'}), 500
+    
+
+BASE_URL = (
+    "https://sandbox.safaricom.co.ke"
+    if MPESA_ENV == "sandbox"
+    else "https://api.safaricom.co.ke"
+)
+
+
+
+def get_access_token():
+    url = f"{BASE_URL}/oauth/v1/generate?grant_type=client_credentials"
+    res = requests.get(url, auth=(CONSUMER_KEY, CONSUMER_SECRET))
+
+    if res.status_code != 200:
+        raise Exception("Failed to get access token")
+
+    return res.json().get("access_token")
+
+
+
+def pay(phone, amount):
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    password = base64.b64encode(
+        f"{SHORTCODE}{PASSKEY}{timestamp}".encode()
+    ).decode()
+
+    payload = {
+        "BusinessShortCode": SHORTCODE,
+        "Password": password,
+        "Timestamp": timestamp,
+        "TransactionType": "CustomerPayBillOnline",
+        "Amount": amount,
+        "PartyA": phone,
+        "PartyB": SHORTCODE,
+        "PhoneNumber": phone,
+        "CallBackURL": "https://esaveonlineapp.eu.pythonanywhere.com/mpesa/callback",
+        "AccountReference": "Tunu Publishers",
+        "TransactionDesc": "Payment"
+    }
+
+    headers = {
+        "Authorization": f"Bearer {get_access_token()}",
+        "Content-Type": "application/json"
+    }
+
+    res = requests.post(
+        f"{BASE_URL}/mpesa/stkpush/v1/processrequest",
+        json=payload,
+        headers=headers
+    )
+
+    return jsonify(res.json())
+
+@app.route("/mpesa/callback", methods=["POST"])
+def mpesa_callback():
+    data = request.get_json(force=True)
+
+    print("MPESA CALLBACK 🔔")
+    print(json.dumps(data, indent=2))
+
+    stk = data.get("Body", {}).get("stkCallback", {})
+    result_code = stk.get("ResultCode")
+    result_desc = stk.get("ResultDesc")
+
+    if result_code == 0:
+        metadata = stk.get("CallbackMetadata", {}).get("Item", [])
+        parsed = {item["Name"]: item.get("Value") for item in metadata}
+
+        amount = parsed.get("Amount")
+        receipt = parsed.get("MpesaReceiptNumber")
+        phone = parsed.get("PhoneNumber")
+
+        # TO DO save to DB
+        print("PAYMENT SUCCESS 💰", amount, receipt, phone)
+    else:
+        print("PAYMENT FAILED ❌", result_desc)
+
+    return jsonify({"ResultCode": 0, "ResultDesc": "Accepted"})
+
 @app.route('/api/admin/edit_book', methods=['POST'])
 @login_required
 @admin_required
@@ -627,7 +917,7 @@ def edit_book():
         book.oldPrice = data.get("oldPrice") or 0
         book.newPrice = data.get("newPrice")
         book.grade = data.get("grade")
-        book.authors = data.get("authors")
+        book.authors = ", ".join(data.get("authors") or []) if isinstance(data.get("authors"), list) else (data.get("authors") or "")        
         book.audience = data.get('audience')
         book.image = data.get('image')
 
@@ -698,4 +988,4 @@ def create_db():
 if __name__=='__main__':
     with app.app_context():
        db.create_all()
-    app.run(debug=True)
+    app.run(debug=True, port=5002)
